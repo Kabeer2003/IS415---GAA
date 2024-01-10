@@ -1,0 +1,11 @@
+---
+title: "Hands-on_Ex01: Geospatial Data Wrangling with R"
+---
+
+Getting Started
+
+Installing and Loading R packages
+
+In this section, I will install and load tidyverse and sf packages.
+
+

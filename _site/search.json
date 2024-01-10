@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "IS415 - GAA",
     "section": "",
-    "text": "This is a Quarto website.\nTo learn more about Quarto websites visit https://quarto.org/docs/websites.\n\n1 + 1\n\n[1] 2"
+    "text": "Welcome to IS415 Geospatial Analytics and Applications I am taking this term.\nThis is the course website for IS415 I study this term. You will find my coursework on this website"
   },
   {
     "objectID": "about.html",
@@ -12,5 +12,12 @@
     "title": "About",
     "section": "",
     "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html",
+    "href": "Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html",
+    "title": "Hands-on_Ex01: Geospatial Data Wrangling with R",
+    "section": "",
+    "text": "Getting Started\nInstalling and Loading R packages\nIn this section, I will install and load tidyverse and sf packages."
   }
 ]
