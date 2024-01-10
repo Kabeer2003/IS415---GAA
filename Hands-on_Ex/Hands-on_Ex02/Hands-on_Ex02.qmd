@@ -1,0 +1,5 @@
+---
+title: "Hands-on_Ex02:Thematic Mapping and GeoVisualisation with R"
+---
+
+**WORK IN PROGRESS**
