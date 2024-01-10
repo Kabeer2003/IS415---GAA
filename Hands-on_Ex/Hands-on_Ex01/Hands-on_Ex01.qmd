@@ -2,10 +2,27 @@
 title: "Hands-on_Ex01: Geospatial Data Wrangling with R"
 ---
 
-Getting Started
+# Getting Started
 
-Installing and Loading R packages
+## Installing and Loading R packages
 
 In this section, I will install and load tidyverse and sf packages.
+
+```{r}
+pacman::p_load(sf, tidyverse)
+```
+
+## Importing relevant geospatial data in shapefile format
+
+```{r}
+mpsz <- sf::st_read(dsn = "D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex01/data/geospatial")
+
+```
+
+## Plotting the geospatial data
+
+```{r}
+plot(mpsz)
+```
 
 **WORK IN PROGRESS**
