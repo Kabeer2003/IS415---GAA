@@ -2,4 +2,123 @@
 title: "Hands-on_Ex02:Thematic Mapping and GeoVisualisation with R"
 ---
 
+Loading relevant packages
+
+```{r}
+pacman::p_load(sf, tmap, tidyverse)
+```
+
+Importing relevant map data
+
+```{r}
+mpsz <- sf::st_read(dsn = "D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex01/data/geospatial")
+```
+
+```{r}
+mpsz
+```
+
+Reading Census Data (2020)
+
+```{r}
+popdata <- read_csv("D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex02/data/aspatial/respopagesextod2011to2020.csv")
+```
+
+Performing data transformation on census data
+```{r}
+final_result <- popdata %>%
+  filter(across(any_of(c("Time")), ~. == 2020)) %>%
+  group_by(PA, SZ, AG) %>%
+  summarise(POP = sum(Pop)) %>%
+  ungroup() %>%
+  pivot_wider(names_from = AG, values_from = POP) %>%
+  mutate(YOUNG = rowSums(.[3:6]) + rowSums(.[12]),
+         `ECONOMY ACTIVE` = rowSums(.[7:11]) + rowSums(.[13:15]),
+         `AGED` = rowSums(.[16:21]),
+         `TOTAL` = rowSums(.[3:21]),
+         `DEPENDENCY` = (`YOUNG` + `AGED`) / `ECONOMY ACTIVE`) %>%
+  select(PA, SZ, YOUNG, `ECONOMY ACTIVE`, AGED, TOTAL, DEPENDENCY)
+
+```
+
+Joining attribute data with Geospatial data
+
+```{r}
+popdata2020 <- final_result %>%
+  mutate_at(.vars = vars(PA, SZ), 
+          .funs = list(toupper)) %>%
+  filter(`ECONOMY ACTIVE` > 0)
+```
+
+```{r}
+mpsz_pop2020 <- left_join(mpsz, popdata2020,
+                          by = c("SUBZONE_N" = "SZ"))
+```
+
+Left join map with aspatial data
+
+```{r}
+# Specify the directory path
+directory_path <- "D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex02/data/rds/"
+
+if (!dir.exists(directory_path)) {
+  dir.create(directory_path, recursive = TRUE)
+}
+
+write_rds(mpsz_pop2020, file.path(directory_path, "mpszpop2020.rds"))
+
+```
+
+Plotting a choropleth map (Quick) using tmap
+
+```{r}
+tmap_mode("plot")
+qtm(mpsz_pop2020, 
+    fill = "DEPENDENCY")
+```
+
+Plotting a detailed choropleth map using tmap elements 
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY", 
+          style = "quantile", 
+          palette = "Blues",
+          title = "Dependency ratio") +
+  tm_layout(main.title = "Distribution of Dependency Ratio by planning subzone",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.5, 
+            legend.width = 0.4,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2) +
+  tm_credits("Source: Planning Sub-zone boundary from Urban Redevelopment Authorithy (URA)\n and Population data from Department of Statistics DOS", 
+             position = c("left", "bottom"))
+```
+
+Drawing a map (Practice)
+
+```{r}
+tm_shape(mpsz_pop2020) +
+  tm_polygons("DEPENDENCY", n = 5, style = "equal") + 
+  tm_borders(alpha = 0.5)
+```
+
+Finding statistical summary (Quartiles) to accurately plot map
+
+```{r}
+summary(mpsz_pop2020$DEPENDENCY)
+```
+
+
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",n = 6,style = "quantile", palette = "-Blues") +
+  tm_borders(alpha = 0.5)
+```
+
 **WORK IN PROGRESS**
