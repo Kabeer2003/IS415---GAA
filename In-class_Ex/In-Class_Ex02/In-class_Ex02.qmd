@@ -1,0 +1,73 @@
+title: R for Geospatial Data Science
+html:
+  code_fold = True
+  code_summary = 
+
+Installing relevant r packages
+
+```{r}
+pacman::p_load(arrow, lubridate, tidyverse, sf, tmap)
+```
+
+Importing GrabPosisi data 
+
+```{r}
+grabdata <- read_parquet("D:/Kabeer2003/IS415 - GAA/In-class_Ex/In-class_Ex02/data/GrabPosisi/part-00000.parquet")
+```
+
+```{r}
+grabdata$pingtimestamp <- as_datetime(grabdata$pingtimestamp)
+```
+
+Extract trip start time
+
+```{r}
+origin_df <- grabdata %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number() == 1) %>%
+  mutate(weekday = wday(pingtimestamp, label = TRUE, abbr = TRUE), 
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+
+```
+
+
+Extract destination location
+
+```{r}
+destination_df <- grabdata %>%
+  group_by(trj_id) %>%
+  arrange(desc(pingtimestamp)) %>%
+  filter(row_number() == 1) %>%
+  mutate(weekday = wday(pingtimestamp, label = TRUE, abbr = TRUE), 
+         end_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+
+
+```
+
+Writing the data from origin and destintion dataframes into
+respective RDS file
+
+```{r}
+directory_path <- "D:/Kabeer2003/IS415 - GAA/In-class_Ex/In-class_Ex02/data/rds/"
+
+if (!dir.exists(directory_path)) {
+  dir.create(directory_path, recursive = TRUE)
+}
+
+write_rds(origin_df, file.path(directory_path, "origin_df.rds"))
+write_rds(destination_df, file.path(directory_path, "destination_df.rds"))
+
+```
+
+Read data from existing rds files
+
+```{r}
+origin_df <- read_rds("D:/Kabeer2003/IS415 - GAA/In-class_Ex/In-class_Ex02/data/rds/origin_df.rds")
+
+destination_df <- read_rds("D:/Kabeer2003/IS415 - GAA/In-class_Ex/In-class_Ex02/data/rds/destination_df.rds")
+```
+
