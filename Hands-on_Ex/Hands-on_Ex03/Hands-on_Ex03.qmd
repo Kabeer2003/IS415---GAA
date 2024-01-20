@@ -1,0 +1,224 @@
+---
+title: "Hands-on_Ex03: 1st Order Spatial Point Patterns Analysis Methods"
+---
+
+Importing all relevant R packages.
+
+```{r}
+install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
+
+packages = c('maptools', 'sf', 'raster','spatstat', 'tmap')
+for (p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p,character.only = T)
+}
+```
+
+Importing relevant spatial data
+```{r}
+childcare_sf <- st_read("D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex03/data/child-care-services-geojson.geojson") %>%
+  st_transform(crs = 3414)
+
+```
+
+```{r}
+sg_sf <- st_read(dsn = "D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex03/data", layer = "CostalOutline")
+```
+
+```{r}
+mpsz_sf <- st_read(dsn = "D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex03/data", layer = "MP14_SUBZONE_WEB_PL")
+```
+Plotting the geospatial data sets
+
+```{r}
+tmap_mode('view')
+tm_shape(childcare_sf)+
+  tm_dots()
+
+tmap_mode('plot')
+```
+
+Geospatial Data Wrangling
+
+Converting sf dataframes to sp's spatial class
+
+```{r}
+childcare_sf <- st_transform(childcare_sf, crs = 3414)
+sg_sf <- st_transform(sg_sf, crs = 3414)
+mpsz_sf <- st_transform(mpsz_sf, crs = 3414)
+```
+
+Converting spatial classes into general sp objects
+
+```{r}
+childcare_sp <- as(childcare, "SpatialPoints")
+sg_sp <- as(sg, "SpatialPolygons")
+```
+
+Converting the generic sp objects into spatstat's PPP format
+
+```{r}
+childcare_ppp <- as(childcare_sp, "ppp")
+plot(childcare_ppp)
+```
+
+Handling duplicated points in a ppp object
+
+```{r}
+any(duplicated(childcare_ppp))
+
+multiplicity(childcare_ppp)
+```
+
+Checking how many locations have duplicates
+
+```{r}
+sum(multiplicity(childcare_ppp) > 1)
+```
+
+Viewing all duplicate locations on a map (visualisation)
+```{r}
+tmap_mode('view')
+tm_shape(childcare) +
+  tm_dots(alpha=0.4, 
+          size=0.05)
+tmap_mode('plot')
+```
+
+Removing all duplicate points via jittering
+
+```{r}
+childcare_ppp_jit <- rjitter(childcare_ppp, 
+                             retry=TRUE, 
+                             nsim=1, 
+                             drop=TRUE)
+```
+
+Checking if duplicate points still exist post jittering
+
+```{r}
+any(duplicated(childcare_ppp_jit))
+```
+
+Converting the Spatial Polygon opject to an  owin object and plotting it
+
+```{r}
+sg_owin <- as(sg_sp, "owin")
+plot(sg_owin)
+```
+
+Creating a combined object
+
+```{r}
+childcareSG_ppp = childcare_ppp[sg_owin]
+summary(childcareSG_ppp)
+```
+
+Displaying Kernel density 
+
+```{r}
+kde_childcareSG_bw <- density(childcareSG_ppp,
+                              sigma=bw.diggle,
+                              edge=TRUE,
+                            kernel="gaussian") 
+plot(kde_childcareSG_bw)
+```
+
+Assuming that there's a spatial points data frame named childcareSG_ppp
+
+Estimating  bandwidth using bw.diggle
+
+```{r}
+bw <- bw.diggle(childcareSG_ppp)
+```
+
+Rescaling unit of measurement from meters to kilometers
+
+```{r}
+childcareSG_ppp.km <- rescale(childcareSG_ppp, 1000, "km")
+```
+
+Create a new spatial points data frame with rescaled coordinates
+
+```{r}
+kde_childcareSG.bw <- density(childcareSG_ppp.km, sigma=bw.diggle, edge=TRUE, kernel="gaussian")
+plot(kde_childcareSG.bw)
+```
+Recalibration and plotting
+
+```{r}
+kde_childcareSG.bw <- density.ppp(childcareSG_ppp.km, sigma = bw, edge = TRUE, kernel = "gaussian")
+plot(kde_childcareSG.bw)
+```
+
+Other methods to determine bandwidth
+
+```{r}
+ bw.CvL(childcareSG_ppp.km)
+```
+
+```{r}
+ bw.scott(childcareSG_ppp.km)
+```
+
+```{r}
+ bw.ppl(childcareSG_ppp.km)
+```
+
+```{r}
+ bw.diggle(childcareSG_ppp.km)
+```
+
+Comparing diggle and ppl
+
+```{r}
+duplicated_points <- duplicated(childcareSG_ppp.km)
+unique_data <- childcareSG_ppp.km[!duplicated_points, ]
+
+childcareSG_ppp.km$lat <- as.numeric(childcareSG_ppp.km$lat)
+childcareSG_ppp.km$lon <- as.numeric(childcareSG_ppp.km$lon)
+childcareSG_ppp.km$lat <- round(childcareSG_ppp.km$lat, 3)
+childcareSG_ppp.km$lon <- round(childcareSG_ppp.km$lon, 3)
+```
+
+```{r}
+kde_childcareSG.ppl <- density(childcareSG_ppp.km, 
+                               sigma=bw.ppl, 
+                               edge=TRUE,
+                               kernel="gaussian")
+par(mfrow=c(1,2))
+plot(kde_childcareSG.bw, main = "bw.diggle")
+plot(kde_childcareSG.ppl, main = "bw.ppl")
+```
+
+Computing Kernel density using other methods apart from Gaussian distribution
+
+```{r}
+par(mfrow=c(2,2))
+plot(density(childcareSG_ppp.km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="gaussian"), 
+     main="Gaussian")
+plot(density(childcareSG_ppp.km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="epanechnikov"), 
+     main="Epanechnikov")
+plot(density(childcareSG_ppp.km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="quartic"), 
+     main="Quartic")
+plot(density(childcareSG_ppp.km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="disc"), 
+     main="Disc")
+```
+
+
+
+
