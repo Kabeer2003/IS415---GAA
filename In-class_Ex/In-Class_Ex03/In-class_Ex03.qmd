@@ -1,0 +1,77 @@
+---
+title: "In-class_Ex03"
+---
+
+```{r}
+install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
+
+pacman::p_load(maptools, sf, raster, spatstat, tmap, tidyverse)
+
+```
+
+```{r}
+mpsz <- sf::st_read(dsn = "D:/Kabeer2003/IS415 - GAA/In-class_Ex/In-class_Ex03/data/data/geospatial") 
+```
+
+```{r}
+mpsz_sf <- sf::st_read(dsn = "D:/Kabeer2003/IS415 - GAA/In-Class_Ex/In-Class_Ex03/data/data/geospatial", layer = "MP14_SUBZONE_WEB_PL" )
+
+plot(mpsz_sf)
+```
+
+```{r}
+childcare_sf <- sf::st_read(dsn = "D:/Kabeer2003/IS415 - GAA/In-Class_Ex/In-Class_Ex03/data/data/geospatial", layer = "Childcare" )
+
+```
+
+```{r}
+childcare_sf <- sf::st_read(dsn = "D:/Kabeer2003/IS415 - GAA/In-Class_Ex/In-Class_Ex03/data/data/geospatial", layer = "Childcare" )%>% st_transform(crs = 3414)
+```
+```{r}
+sg_sf <- mpsz_sf %>%
+  st_union()
+plot(sg_sf)
+
+
+```
+
+
+
+```{r}
+childcare_ppp <- as.ppp(childcare_sf)
+summary(childcare_ppp)
+```
+
+Remove redundant duplicates
+
+```{r}
+any(duplicated(childcare_ppp))
+childcare_ppp_jit <- rjitter(childcare_ppp, retry = TRUE, nsim = 1, drop = TRUE)
+any(duplicated(childcare_ppp_jit))
+```
+
+```{r}
+
+```
+
+```{r}
+sg_owin <- as.owin(sg_sf)
+#Confines study area, input to owin should always be an sf layer
+#as_ppp can convert data from sf to ppp likewise
+```
+
+```{r}
+plot(sg_owin)
+summary(sg_owin)
+```
+
+```{r}
+childcareSG_ppp = childcare_ppp[sg_owin]
+```
+
+```{r}
+pg <- mpsz_sf %>%
+  filter(PLN_AREA_N == "PUNGGOL")
+
+plot(pg)
+```
