@@ -1,3 +1,22 @@
 ---
 title: "Take-home_Ex01"
 ---
+
+Installing relevant R packages
+
+```{r}
+pacman::p_load(arrow, classInt, lubridate, maptools, raster, sf, spatstat, sp, spNetwork, tidyverse, tmap, viridis)
+```
+
+Importing Aspatial Data (GrabPosisi)
+
+```{r}
+grabdata <- read_parquet("D:/Kabeer2003/IS415 - GAA/Take-Home_Ex/Take-Home_Ex01/data/aspatial/GrabPosisi/part-00000.parquet")
+```
+
+Importing Spatial Data 
+
+```{r}
+map_sf <- st_read("D:/Kabeer2003/IS415 - GAA/Take-Home_Ex/Take-Home_Ex01/data/geospatial/MasterPlan2019SubzoneBoundaryNoSeaGEOJSON.geojson")
+```
+
