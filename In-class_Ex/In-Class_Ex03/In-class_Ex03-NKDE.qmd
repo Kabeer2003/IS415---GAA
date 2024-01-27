@@ -1,0 +1,10 @@
+---
+title: "In-class_Ex03-NKDE"
+---
+
+```{r}
+install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
+
+pacman::p_load(maptools, sf, raster, spatstat, tmap, tidyverse)
+
+```
