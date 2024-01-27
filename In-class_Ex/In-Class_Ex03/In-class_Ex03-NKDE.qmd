@@ -5,6 +5,21 @@ title: "In-class_Ex03-NKDE"
 ```{r}
 install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
 
-pacman::p_load(maptools, sf, raster, spatstat, tmap, tidyverse)
+pacman::p_load(sf, spNetwork, tmap, classInt, viridis, tidyverse)
+```
 
+```{r}
+network <- sf::st_read(dsn = "D:/Kabeer2003/IS415 - GAA/In-class_Ex/In-class_Ex03/data/data/geospatial", layer = "Punggol_St") 
+
+childcare <- sf::st_read(dsn = "D:/Kabeer2003/IS415 - GAA/In-class_Ex/In-class_Ex03/data/data/geospatial", layer = "Punggol_CC")
+```
+
+```{r}
+tmap_mode('view')
+tm_shape(childcare) + tm_dots() + tm_shape(network) + tm_lines()
+tmap_mode('plot')
+```
+
+```{r}
+lixels
 ```

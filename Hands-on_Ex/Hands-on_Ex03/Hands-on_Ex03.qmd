@@ -7,19 +7,18 @@ Importing all relevant R packages.
 ```{r}
 install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
 
-packages = c('maptools', 'sf', 'raster','spatstat', 'tmap')
-for (p in packages){
-  if(!require(p, character.only = T)){
+packages <- c('maptools', 'sf', 'raster', 'spatstat', 'tmap')
+for (p in packages) {
+  if (!require(p, character.only = TRUE)) {
     install.packages(p)
   }
-  library(p,character.only = T)
+  library(p, character.only = TRUE)
 }
 ```
-
 Importing relevant spatial data
+
 ```{r}
-childcare_sf <- st_read("D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex03/data/child-care-services-geojson.geojson") %>%
-  st_transform(crs = 3414)
+childcare_sf <- st_read("D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex03/data/child-care-services-geojson.geojson")
 
 ```
 
@@ -68,7 +67,6 @@ Handling duplicated points in a ppp object
 
 ```{r}
 any(duplicated(childcare_ppp))
-
 multiplicity(childcare_ppp)
 ```
 
@@ -90,10 +88,7 @@ tmap_mode('plot')
 Removing all duplicate points via jittering
 
 ```{r}
-childcare_ppp_jit <- rjitter(childcare_ppp, 
-                             retry=TRUE, 
-                             nsim=1, 
-                             drop=TRUE)
+childcare_ppp_jit <- rjitter(childcare_ppp, retry = TRUE, nsim = 1, drop = TRUE)
 ```
 
 Checking if duplicate points still exist post jittering
@@ -119,10 +114,8 @@ summary(childcareSG_ppp)
 Displaying Kernel density 
 
 ```{r}
-kde_childcareSG_bw <- density(childcareSG_ppp,
-                              sigma=bw.diggle,
-                              edge=TRUE,
-                            kernel="gaussian") 
+bw <- bw.diggle(childcareSG_ppp)
+kde_childcareSG_bw <- density.ppp(childcareSG_ppp, sigma = bw, edge = TRUE, kernel = "gaussian")
 plot(kde_childcareSG_bw)
 ```
 
@@ -137,14 +130,15 @@ bw <- bw.diggle(childcareSG_ppp)
 Rescaling unit of measurement from meters to kilometers
 
 ```{r}
-childcareSG_ppp.km <- rescale(childcareSG_ppp, 1000, "km")
+childcareSG_ppp.km <- rescale_points(childcareSG_ppp, 1000, "km")
 ```
 
 Create a new spatial points data frame with rescaled coordinates
 
 ```{r}
-kde_childcareSG.bw <- density(childcareSG_ppp.km, sigma=bw.diggle, edge=TRUE, kernel="gaussian")
+kde_childcareSG.bw <- density.ppp(childcareSG_ppp.km, sigma = bw, edge = TRUE, kernel = "gaussian")
 plot(kde_childcareSG.bw)
+
 ```
 Recalibration and plotting
 
@@ -167,56 +161,53 @@ Other methods to determine bandwidth
  bw.ppl(childcareSG_ppp.km)
 ```
 
+Standardizing the variables
+
 ```{r}
- bw.diggle(childcareSG_ppp.km)
+childcareSG_ppp.km$lat <- scale(as.numeric(childcareSG_ppp.km$lat))
+childcareSG_ppp.km$lon <- scale(as.numeric(childcareSG_ppp.km$lon))
 ```
 
-Comparing diggle and ppl
+Checking for duplicated points and handling them
 
 ```{r}
 duplicated_points <- duplicated(childcareSG_ppp.km)
 unique_data <- childcareSG_ppp.km[!duplicated_points, ]
-
-childcareSG_ppp.km$lat <- as.numeric(childcareSG_ppp.km$lat)
-childcareSG_ppp.km$lon <- as.numeric(childcareSG_ppp.km$lon)
-childcareSG_ppp.km$lat <- round(childcareSG_ppp.km$lat, 3)
-childcareSG_ppp.km$lon <- round(childcareSG_ppp.km$lon, 3)
 ```
 
 ```{r}
-kde_childcareSG.ppl <- density(childcareSG_ppp.km, 
-                               sigma=bw.ppl, 
-                               edge=TRUE,
-                               kernel="gaussian")
-par(mfrow=c(1,2))
-plot(kde_childcareSG.bw, main = "bw.diggle")
-plot(kde_childcareSG.ppl, main = "bw.ppl")
+childcareSG_ppp_unique_diggle <- ppp(unique_data$lon, unique_data$lat, window = sg_owin)
+```
+
+Displaying Kernel density for the new ppp object with bw.diggle
+
+```{r}
+kde_childcareSG_unique_diggle <- density(childcareSG_ppp_unique_diggle, sigma = 2 * as.numeric(bw.diggle), edge = TRUE, kernel = "gaussian")
+plot(kde_childcareSG_unique_diggle, main = "bw.diggle")
+```
+
+Creating a new ppp object with unique points using bw.ppl
+
+```{r}
+childcare_ppp_unique_ppl <- ppp(unique_data$lon, unique_data$lat, window = sg_owin)
+```
+
+ Displaying Kernel density for the new ppp object with bw.ppl
+
+```{r}
+kde_childcareSG_unique_ppl <- density(childcare_ppp_unique_ppl, sigma = bw.ppl, edge = TRUE, kernel = "gaussian")
+plot(kde_childcareSG_unique_ppl, main = "bw.ppl")
 ```
 
 Computing Kernel density using other methods apart from Gaussian distribution
 
 ```{r}
-par(mfrow=c(2,2))
-plot(density(childcareSG_ppp.km, 
-             sigma=bw.ppl, 
-             edge=TRUE, 
-             kernel="gaussian"), 
-     main="Gaussian")
-plot(density(childcareSG_ppp.km, 
-             sigma=bw.ppl, 
-             edge=TRUE, 
-             kernel="epanechnikov"), 
-     main="Epanechnikov")
-plot(density(childcareSG_ppp.km, 
-             sigma=bw.ppl, 
-             edge=TRUE, 
-             kernel="quartic"), 
-     main="Quartic")
-plot(density(childcareSG_ppp.km, 
-             sigma=bw.ppl, 
-             edge=TRUE, 
-             kernel="disc"), 
-     main="Disc")
+par(mfrow = c(2, 2))
+plot(density(childcareSG_ppp.km, sigma = bw.ppl, edge = TRUE, kernel = "gaussian"), main = "Gaussian")
+plot(density(childcareSG_ppp.km, sigma = bw.ppl, edge = TRUE, kernel = "epanechnikov"), main = "Epanechnikov")
+plot(density(childcareSG_ppp.km, sigma = bw.ppl, edge = TRUE, kernel = "quartic"), main = "Quartic")
+plot(density(childcareSG_ppp.km, sigma = bw.ppl, edge = TRUE, kernel = "disc"), main = "Disc")
+
 ```
 
 
