@@ -1,0 +1,209 @@
+---
+title: "Take-home_Ex01"
+---
+
+Installing relevant R packages
+
+```{r}
+pacman::p_load(sf, spdep, tmap, tidyverse, knitr)
+```
+
+Importing the Hunan shapefile
+
+```{r}
+hunan <- st_read(dsn ="D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex04/data/geospatial", layer = "Hunan")
+```
+
+Importing the CSV file into R
+
+```{r}
+hunan2012 <- st_read(dsn ="D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex04/data/aspatial/Hunan_2012.csv")
+```
+Left-joining the Geospatial Hunan spatial polygon with the aspatial Hunan2012 csv file
+
+```{r}
+hunan <- left_join(hunan,hunan2012)%>%
+  select(1:4, 7, 15)
+```
+Map on the left: Preparing BaseMap of Hunan depicting different sub-regions
+Map on the right: Displaying GDP per Capita in the different sub-regions of Hunan
+
+```{r}
+basemap <- tm_shape(hunan) +
+  tm_polygons() +
+  tm_text("NAME_3", size=0.5)
+
+gdppc <- qtm(hunan, "GDPPC")
+tmap_arrange(basemap, gdppc, asp=1, ncol=2)
+```
+
+Compute Queen Contiguity-based neighbours
+
+```{r}
+wm_q <- poly2nb(hunan, queen=TRUE)
+summary(wm_q)
+```
+
+Finding neighbours of the very first polygon / province
+
+```{r}
+wm_q[[1]]
+```
+
+Retrieving a county's name using its polygon ID
+
+```{r}
+hunan$County[1]
+```
+
+One could find the names of all neighbouring polygons using their polygon IDs
+
+```{r}
+hunan$NAME_3[c(2,3,4,57,85)]
+```
+
+Finding the GDP per capita of all 5 neighbours
+
+```{r}
+nb1 <- wm_q[[1]]
+nb1 <- hunan$GDPPC[nb1]
+nb1
+```
+
+View complete weight matrix using str()
+
+```{r}
+str(wm_q)
+```
+
+Compute a rook-based contiguity matrix
+
+```{r}
+wm_r <- poly2nb(hunan, queen=FALSE)
+summary(wm_r)
+```
+
+Visualising contiguous weights
+
+```{r}
+longitude <- map_dbl(hunan$geometry, ~st_centroid(.x)[[1]])
+latitude <- map_dbl(hunan$geometry, ~st_centroid(.x)[[2]])
+```
+
+Retrieving the coordinates: Binding the longitudes and lattitudes into a single object
+
+```{r}
+coords <- cbind(longitude, latitude)
+head(coords)
+```
+
+Plotting both queen  and rook contiguity based neighbours on a map
+
+```{r}
+par(mfrow=c(1,2))
+plot(hunan$geometry, border="lightgrey", main="Queen Contiguity")
+plot(wm_q, coords, pch = 19, cex = 0.6, add = TRUE, col= "red")
+plot(hunan$geometry, border="lightgrey", main="Rook Contiguity")
+plot(wm_r, coords, pch = 19, cex = 0.6, add = TRUE, col = "blue")
+```
+
+Computing neighbours based on distance
+
+Determining the cut-off distance
+
+```{r}
+#coords <- coordinates(hunan)
+k1 <- knn2nb(knearneigh(coords))
+k1dists <- unlist(nbdists(k1, coords, longlat = TRUE))
+summary(k1dists)
+```
+
+Knowing that the largest distance to a first neighbour is 61.79km, Using a threshold of 62km would ensure that all neighbouring regions would be covered further giving a degree of cerrtainty that all sub-regions have atleast 1 neighbour
+
+```{r}
+wm_d62 <- dnearneigh(coords, 0, 62, longlat = TRUE)
+wm_d62
+```
+
+```{r}
+str(wm_d62)
+```
+
+Displaying the structure of the weight matrix by combining table and card
+
+```{r}
+table(hunan$County, card(wm_d62))
+```
+
+```{r}
+n_comp <- n.comp.nb(wm_d62)
+n_comp$nc
+
+table(n_comp$comp.id)
+```
+
+Plotting a distance-weight matrix 
+(red lines = 1st nearest neighbours, black lines = Distance link)
+
+```{r}
+par(mfrow=c(1,2))
+plot(hunan$geometry, border="lightgrey", main="1st nearest neighbours")
+plot(k1, coords, add=TRUE, col="red", length=0.08)
+plot(hunan$geometry, border="lightgrey", main="Distance link")
+plot(wm_d62, coords, add=TRUE, pch = 19, cex = 0.6)
+```
+
+Increasing average number of neighbours
+
+```{r}
+knn6 <- knn2nb(knearneigh(coords, k=6))
+knn6
+```
+
+Now, each county has exactly 6 neighbours (Nothing less, nothing more)
+
+```{r}
+str(knn6)
+```
+
+Re-adjusted weightage map
+
+```{r}
+plot(hunan$geometry, border="lightgrey")
+plot(knn6, coords, pch = 19, cex = 0.6, add = TRUE, col = "red")
+```
+
+Deriving a spatial weight matrix using IDW (Inverse Distance Method)
+
+Computing the distances between different areas
+
+```{r}
+dist <- nbdists(wm_q, coords, longlat = TRUE)
+ids <- lapply(dist, function(x) 1/(x))
+ids
+```
+Assigning weights to each row of the polygon
+
+```{r}
+rswm_q <- nb2listw(wm_q, style="W", zero.policy = TRUE)
+rswm_q
+
+rswm_ids$weights[1]
+```
+View the weights of the first polygon's eight neighbours (Queen)
+
+```{r}
+rswm_q$weights[10]
+```
+
+Derive row-standardised weight matrix
+
+```{r}
+rswm_ids <- nb2listw(wm_q, glist=ids, style="B", zero.policy=TRUE)
+rswm_ids
+```
+
+
+
+
+
