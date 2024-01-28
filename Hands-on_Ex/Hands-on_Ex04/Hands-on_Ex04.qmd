@@ -188,7 +188,7 @@ Assigning weights to each row of the polygon
 rswm_q <- nb2listw(wm_q, style="W", zero.policy = TRUE)
 rswm_q
 
-rswm_ids$weights[1]
+#rswm_ids$weights[1]
 ```
 View the weights of the first polygon's eight neighbours (Queen)
 
@@ -199,8 +199,8 @@ rswm_q$weights[10]
 Derive row-standardised weight matrix
 
 ```{r}
-rswm_ids <- nb2listw(wm_q, glist=ids, style="B", zero.policy=TRUE)
-rswm_ids
+#rswm_ids <- nb2listw(wm_q, glist=ids, style="B", zero.policy=TRUE)
+#rswm_ids
 ```
 
 
