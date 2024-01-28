@@ -19,4 +19,52 @@ Importing Spatial Data
 ```{r}
 map_sf <- st_read("D:/Kabeer2003/IS415 - GAA/Take-Home_Ex/Take-Home_Ex01/data/geospatial/MasterPlan2019SubzoneBoundaryNoSeaGEOJSON.geojson")
 ```
+```{r}
+roads_sf <- st_read("D:/Kabeer2003/IS415 - GAA/Take-Home_Ex/Take-Home_Ex01/data/geospatial/gis_osm_railways_free_1.shp")
+```
+
+Finding points of origin for each trip by setting the index to 1
+
+```{r}
+start_points <- grabdata %>%
+  group_by(trj_id) %>%
+  slice(1) %>%
+  dplyr::select(trj_id, latitude = rawlat, longitude = rawlng)
+```
+
+Similarly, finding points of destination for each trip by setting the index to (n)
+
+```{r}
+end_points <- grabdata %>%
+  group_by(trj_id) %>%
+  slice(n()) %>%
+  dplyr::select(trj_id, latitude = rawlat, longitude = rawlng)
+```
+
+Binding origin and destination points together for each trip
+
+```{r}
+combined_points <- bind_rows(start_points, end_points)
+```
+
+Plotting the map
+
+```{r}
+map_sf <- st_make_valid(map_sf)
+roads_sf <- st_make_valid(roads_sf)
+
+tmap_mode('view')
+tm_shape(map_sf) +
+  tm_borders() +
+  tm_shape(roads_sf) +
+  tm_lines()
+```
+
+
+Planned approach
+
+Transform aspatial data (Follow In-class Exercise 2)
+
+Plot on map using NKDE (Owin objects thingy) (Follow In-class Exercise 3)
+
 
