@@ -1,0 +1,87 @@
+---
+title: "In-class_Ex04"
+---
+
+Installing relevant R packages
+
+```{r}
+pacman::p_load(sf, spdep, tmap, tidyverse, knitr, GWmodel)
+```
+
+Importing the Hunan shapefile
+
+```{r}
+hunan <- st_read(dsn ="D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex04/data/geospatial", layer = "Hunan")
+```
+
+
+Importing the CSV file into R
+
+```{r}
+hunan2012 <- st_read(dsn ="D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex04/data/aspatial/Hunan_2012.csv")
+```
+
+Left-joining the Geospatial Hunan spatial polygon with the aspatial Hunan2012 csv file
+
+```{r}
+hunan <- left_join(hunan,hunan2012)%>%
+  select(1:4, 7, 15)
+```
+
+```{r}
+basemap <- tm_shape(hunan) +
+  tm_polygons() +
+  tm_text("NAME_3", size=0.5)
+#font size
+
+gdppc <- qtm(hunan, "GDPPC")
+tmap_arrange(basemap, gdppc, asp=1, ncol=2)
+```
+
+Compute Queen Contiguity-based neighbours
+
+```{r}
+wm_q <- poly2nb(hunan, queen=TRUE)
+summary(wm_q)
+```
+
+```{r}
+longitude <- map_dbl(hunan$geometry, ~st_centroid(.x)[[1]])
+latitude <- map_dbl(hunan$geometry, ~st_centroid(.x)[[2]])
+```
+
+Retrieving the coordinates: Binding the longitudes and latitudes into a single object
+
+```{r}
+coords <- cbind(longitude, latitude)
+```
+
+```{r}
+k1 <- knn2nb(knearneigh(coords))
+
+k1dists <- unlist(nbdists(k1, coords, longlat = TRUE))
+summary(k1dists)
+```
+
+```{r}
+wm_d62 <- dnearneigh(coords, 0, 62, longlat = TRUE)
+wm_d62
+```
+
+```{r}
+hunan_sp <- hunan%>%
+  as_Spatial()
+```
+
+
+```{r}
+gwstat <- gwss(coords = hunan_sp, 
+               vars = "GDPPC",
+               bw = 6,
+               kernel = "bisquare",
+               adaptive = TRUE,
+               longlat = T)
+```
+
+
+
