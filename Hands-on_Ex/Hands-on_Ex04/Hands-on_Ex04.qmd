@@ -1,5 +1,5 @@
 ---
-title: "Hands-on Exercise 1"
+title: "Hands-on Exercise 4"
 ---
 
 Installing relevant R packages
@@ -32,6 +32,7 @@ Map on the right: Displaying GDP per Capita in the different sub-regions of Huna
 basemap <- tm_shape(hunan) +
   tm_polygons() +
   tm_text("NAME_3", size=0.5)
+#font size
 
 gdppc <- qtm(hunan, "GDPPC")
 tmap_arrange(basemap, gdppc, asp=1, ncol=2)
@@ -158,6 +159,8 @@ Increasing average number of neighbours
 ```{r}
 knn6 <- knn2nb(knearneigh(coords, k=6))
 knn6
+
+
 ```
 
 Now, each county has exactly 6 neighbours (Nothing less, nothing more)
@@ -181,6 +184,7 @@ Computing the distances between different areas
 dist <- nbdists(wm_q, coords, longlat = TRUE)
 ids <- lapply(dist, function(x) 1/(x))
 ids
+
 ```
 Assigning weights to each row of the polygon
 
