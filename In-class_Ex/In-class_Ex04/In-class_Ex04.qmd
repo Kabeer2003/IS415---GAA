@@ -76,11 +76,11 @@ hunan_sp <- hunan%>%
 
 ```{r}
 #gwstat <- gwss(coords = hunan_sp, 
-               vars = "GDPPC",
-               bw = 6,
-               kernel = "bisquare",
-               adaptive = TRUE,
-               longlat = T)
+               #vars = "GDPPC",
+               #bw = 6,
+               #kernel = "bisquare",
+               #adaptive = TRUE,
+               #longlat = T)
 ```
 
 

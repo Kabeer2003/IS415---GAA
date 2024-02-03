@@ -203,8 +203,8 @@ rswm_q$weights[10]
 Derive row-standardised weight matrix
 
 ```{r}
-#rswm_ids <- nb2listw(wm_q, glist=ids, style="B", zero.policy=TRUE)
-#rswm_ids
+rswm_ids <- nb2listw(wm_q, glist=ids, style="B", zero.policy=TRUE)
+rswm_ids
 ```
 
 
