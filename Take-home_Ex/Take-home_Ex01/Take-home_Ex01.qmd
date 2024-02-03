@@ -50,7 +50,9 @@ combined_points <- bind_rows(start_points, end_points)
 Plotting the map
 
 ```{r}
+
 map_sf <- st_make_valid(map_sf)
+roads_sf <- simplify(roads_sf)
 roads_sf <- st_make_valid(roads_sf)
 
 tmap_mode('view')
@@ -58,6 +60,8 @@ tm_shape(map_sf) +
   tm_borders() +
   tm_shape(roads_sf) +
   tm_lines()
+
+
 ```
 
 
