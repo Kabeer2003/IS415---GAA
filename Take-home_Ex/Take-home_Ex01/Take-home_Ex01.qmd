@@ -30,27 +30,31 @@ roads_sf <- roads_sf %>% filter(fclass %in% c("primary", "secondary", "tertiary"
 Finding points of origin for each trip by setting the index to 1
 
 ```{r}
-start_points <- grabdata %>%
+trips_by_origin_pts <- grabdata %>%
   group_by(trj_id) %>%
   slice(1) %>%
-  dplyr::select(trj_id, latitude = rawlat, longitude = rawlng)
+  filter(speed <= 1 && speed >= -1) %>%  
+  select(trj_id, latitude = rawlat, longitude = rawlng, speed)
 ```
 
 Similarly, finding points of destination for each trip by setting the index to (n)
 
 ```{r}
-end_points <- grabdata %>%
+trips_by_destination_pts <- grabdata %>%
   group_by(trj_id) %>%
   slice(n()) %>%
-  dplyr::select(trj_id, latitude = rawlat, longitude = rawlng)
-sf_df <- st_as_sf(df, coords = c("rawlng", "rawlat"), crs = 4326)
+  filter(speed <= 1 && speed >= -1) %>%  
+  select(trj_id, latitude = rawlat, longitude = rawlng, speed)
+
 ```
 
 Binding origin and destination points together for each trip
 
 ```{r}
-distinct_values <- roads_sf %>%
-  distinct(fclass)
+specific_trips_sf <- grabdata %>%
+  filter(trj_id == 10038)
+
+specific_trips_sf <- st_as_sf(specific_trips_sf, coords = c("rawlng", "rawlat"), crs = 4326)
 
 
 ```
@@ -59,15 +63,18 @@ Plotting the map
 
 ```{r}
 
-map_sf <- st_is_valid(map_sf)
-map_sf <- st_as_sf(map_sf)
-roads_sf <- st_is_valid(roads_sf)
+map_sf <- st_make_valid(map_sf)
+roads_sf <- st_make_valid(roads_sf)
+#trips_by_destination_pts <- st_make_valid(trips_by_destination_pts)
+trips_by_destination_pts <- st_as_sf(trips_by_destination_pts, coords = c("longitude", "latitude"), crs = 4326)
 
 tmap_mode('view')
 tm_shape(map_sf) +
   tm_borders() +
   tm_shape(roads_sf) +
-  tm_lines()
+  tm_lines() +
+  tm_shape(trips_by_destination_pts) +
+  tm_dots()
 
 
 ```
