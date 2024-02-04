@@ -39,11 +39,13 @@ Extract destination location
 ```{r}
 destination_df <- grabdata %>%
   group_by(trj_id) %>%
+  mutate(max_row = n()) %>%
   arrange(desc(pingtimestamp)) %>%
-  filter(row_number() == 1) %>%
+  filter(row_number() == max_row) %>%
   mutate(weekday = wday(pingtimestamp, label = TRUE, abbr = TRUE), 
          end_hr = factor(hour(pingtimestamp)),
-         day = factor(mday(pingtimestamp)))
+         day = factor(mday(pingtimestamp))) %>%
+  select(-max_row)
 
 
 ```
