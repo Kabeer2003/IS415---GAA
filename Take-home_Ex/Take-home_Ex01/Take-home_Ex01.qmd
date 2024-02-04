@@ -65,7 +65,7 @@ Plotting the map
 
 map_sf <- st_make_valid(map_sf)
 roads_sf <- st_make_valid(roads_sf)
-#trips_by_destination_pts <- st_make_valid(trips_by_destination_pts)
+
 trips_by_destination_pts <- st_as_sf(trips_by_destination_pts, coords = c("longitude", "latitude"), crs = 4326)
 
 tmap_mode('view')
