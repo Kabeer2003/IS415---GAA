@@ -126,16 +126,17 @@ summary(trips_by_destination_diggle)
 
 Plotting Kernel Density
 
+<!--
 ```{r}
 #bw_diggle <- bw.diggle(trips_by_destination_diggle)
 
 #trips_by_destination_diggle <- #trips_by_destination_diggle[!is.na(trips_by_destination_diggle$x) & #!is.na(trips_by_destination_diggle$y)]
 
-#trips_by_destination_diggle <- density(trips_by_destination_diggle, sigma = 2 * ##as.numeric(bw.diggle), edge = TRUE, kernel = "gaussian")
-
+#trips_by_destination_diggle <- density(trips_by_destination_diggle, sigma = 2 * #as.numeric(bw.diggle), edge = TRUE, kernel = "gaussian")
 
 #plot(trips_by_destination_diggle, main = "bw.diggle")
 
 ```
+-->
 
 
