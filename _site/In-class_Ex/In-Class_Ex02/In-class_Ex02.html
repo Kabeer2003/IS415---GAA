@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>IS415 - GAA - Hands-on_Ex01: Geospatial Data Wrangling with R</title>
+<title>IS415 - GAA – in-class_ex02</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -155,6 +155,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex04/In-class_Ex04.html" rel="" target="">
  <span class="dropdown-text">In-class Exercise 4</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex05/In-class_Ex05.html" rel="" target="">
+ <span class="dropdown-text">In-class Exercise 5</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -162,10 +166,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Take Home Exercises</span>
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-take-home-exercises">    
-        <li>
-    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html" rel="" target="">
- <span class="dropdown-text">Take-Home Exercise 1</span></a>
-  </li>  
+        <li class="dropdown-header">Take-Home Exercise 1</li>
     </ul>
   </li>
 </ul>
@@ -174,9 +175,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="nav-link" href="../../index.html" rel="" target="">
  <span class="menu-text">Home</span></a>
   </li>  
-  <li class="nav-item compact">
+  <li class="nav-item">
     <a class="nav-link" href="../../about.html" rel="" target="">
- <span class="menu-text"></span></a>
+ <span class="menu-text">About</span></a>
   </li>  
 </ul>
             <div class="quarto-navbar-tools">
@@ -190,81 +191,66 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
-   
-  <ul>
-  <li><a href="#getting-started" id="toc-getting-started" class="nav-link active" data-scroll-target="#getting-started">Getting Started</a>
-  <ul class="collapse">
-  <li><a href="#installing-and-loading-r-packages" id="toc-installing-and-loading-r-packages" class="nav-link" data-scroll-target="#installing-and-loading-r-packages">Installing and Loading R packages</a></li>
-  <li><a href="#importing-relevant-geospatial-data-in-shapefile-format" id="toc-importing-relevant-geospatial-data-in-shapefile-format" class="nav-link" data-scroll-target="#importing-relevant-geospatial-data-in-shapefile-format">Importing relevant geospatial data in shapefile format</a></li>
-  <li><a href="#plotting-the-geospatial-data" id="toc-plotting-the-geospatial-data" class="nav-link" data-scroll-target="#plotting-the-geospatial-data">Plotting the geospatial data</a></li>
-  </ul></li>
-  </ul>
-</nav>
+        
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
-<h1 class="title">Hands-on_Ex01: Geospatial Data Wrangling with R</h1>
-</div>
 
 
-
-<div class="quarto-title-meta">
-
-    
-  
-    
-  </div>
-  
-
-</header>
-
-<section id="getting-started" class="level1">
-<h1>Getting Started</h1>
-<section id="installing-and-loading-r-packages" class="level2">
-<h2 class="anchored" data-anchor-id="installing-and-loading-r-packages">Installing and Loading R packages</h2>
-<p>In this section, I will install and load tidyverse and sf packages.</p>
+<p>title: R for Geospatial Data Science html: code_fold = True code_summary =</p>
+<p>Installing relevant r packages</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(arrow, lubridate, tidyverse, sf, tmap)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section>
-<section id="importing-relevant-geospatial-data-in-shapefile-format" class="level2">
-<h2 class="anchored" data-anchor-id="importing-relevant-geospatial-data-in-shapefile-format">Importing relevant geospatial data in shapefile format</h2>
+<p>Importing GrabPosisi data</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>mpsz <span class="ot">&lt;-</span> sf<span class="sc">::</span><span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex01/data/geospatial"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Reading layer `MP14_SUBZONE_NO_SEA_PL' from data source 
-  `D:\Kabeer2003\IS415 - GAA\Hands-on_Ex\Hands-on_Ex01\data\geospatial' 
-  using driver `ESRI Shapefile'
-Simple feature collection with 323 features and 15 fields
-Geometry type: MULTIPOLYGON
-Dimension:     XY
-Bounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33
-Projected CRS: SVY21</code></pre>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>grabdata <span class="ot">&lt;-</span> <span class="fu">read_parquet</span>(<span class="st">"D:/Kabeer2003/IS415 - GAA/In-class_Ex/In-class_Ex02/data/GrabPosisi/part-00000.parquet"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-</section>
-<section id="plotting-the-geospatial-data" class="level2">
-<h2 class="anchored" data-anchor-id="plotting-the-geospatial-data">Plotting the geospatial data</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mpsz)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: plotting the first 9 out of 15 attributes; use max.plot = 15 to plot
-all</code></pre>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>grabdata<span class="sc">$</span>pingtimestamp <span class="ot">&lt;-</span> <span class="fu">as_datetime</span>(grabdata<span class="sc">$</span>pingtimestamp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell-output-display">
-<p><img src="Hands-on_Ex01_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+<p>Extract trip start time</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>origin_df <span class="ot">&lt;-</span> grabdata <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(trj_id) <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(pingtimestamp) <span class="sc">%&gt;%</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">row_number</span>() <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">weekday =</span> <span class="fu">wday</span>(pingtimestamp, <span class="at">label =</span> <span class="cn">TRUE</span>, <span class="at">abbr =</span> <span class="cn">TRUE</span>), </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">start_hr =</span> <span class="fu">factor</span>(<span class="fu">hour</span>(pingtimestamp)),</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">day =</span> <span class="fu">factor</span>(<span class="fu">mday</span>(pingtimestamp)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Extract destination location</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>destination_df <span class="ot">&lt;-</span> grabdata <span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(trj_id) <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">max_row =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(pingtimestamp)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">row_number</span>() <span class="sc">==</span> max_row) <span class="sc">%&gt;%</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">weekday =</span> <span class="fu">wday</span>(pingtimestamp, <span class="at">label =</span> <span class="cn">TRUE</span>, <span class="at">abbr =</span> <span class="cn">TRUE</span>), </span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">end_hr =</span> <span class="fu">factor</span>(<span class="fu">hour</span>(pingtimestamp)),</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">day =</span> <span class="fu">factor</span>(<span class="fu">mday</span>(pingtimestamp))) <span class="sc">%&gt;%</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>max_row)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p><strong>WORK IN PROGRESS</strong></p>
+<p>Writing the data from origin and destintion dataframes into respective RDS file</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>directory_path <span class="ot">&lt;-</span> <span class="st">"D:/Kabeer2003/IS415 - GAA/In-class_Ex/In-class_Ex02/data/rds/"</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(directory_path)) {</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(directory_path, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(origin_df, <span class="fu">file.path</span>(directory_path, <span class="st">"origin_df.rds"</span>))</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(destination_df, <span class="fu">file.path</span>(directory_path, <span class="st">"destination_df.rds"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Read data from existing rds files</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>origin_df <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"D:/Kabeer2003/IS415 - GAA/In-class_Ex/In-class_Ex02/data/rds/origin_df.rds"</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>destination_df <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"D:/Kabeer2003/IS415 - GAA/In-class_Ex/In-class_Ex02/data/rds/destination_df.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 
 
-</section>
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

@@ -1,0 +1,61 @@
+---
+title: "In-class_Ex05: Global and Local measures of Spatial Autocorrelation"
+---
+
+Installing relevant R packages
+```{r}
+pacman::p_load(sf, sfdep, tmap, tidyverse, knitr)
+```
+
+Importing Geospatial Data
+```{r}
+hunan <- st_read(dsn ="D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex04/data/geospatial", layer = "Hunan")
+```
+
+Importing Aspatial Data
+```{r}
+hunan2012 <- st_read(dsn ="D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex04/data/aspatial/Hunan_2012.csv")
+```
+
+Left-joining the Geospatial Hunan spatial polygon with the aspatial Hunan2012 csv file
+```{r}
+#Use alternate variables to retain spatial properties
+hunan_GDPPC <- left_join(hunan,hunan2012)%>%
+  select(1:4, 7, 15)
+```
+
+Plotting the map
+```{r}
+basemap <- tm_shape(hunan) +
+  tm_polygons() +
+  tm_text("NAME_3", size=0.5)
+
+gdppc <- qtm(hunan_GDPPC, "GDPPC")
+tmap_arrange(basemap, gdppc, asp=1, ncol=2)
+```
+
+```{r}
+wm_q <- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry),  
+         wt = st_weights(nb, style = "W"),
+         .before = 1)
+```
+
+Computing Moran I
+```{r}
+#moranI <- global_moran_test(wm_q$GDPPC, wm_q$nb, wm_q$wt, nsim = 99)
+```
+
+Global Moran permutation test
+```{r}
+#global_moran_perm(wm_q$GDPPC, wm_q, wm_q$nb, wm_q$wt, nsim = 99)
+```
+
+
+
+
+
+
+
+
+

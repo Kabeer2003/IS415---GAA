@@ -41,7 +41,7 @@ roads_sf <- roads_sf %>% filter(fclass %in% c("primary", "secondary", "tertiary"
 ```
 
 
-
+Converging all polygons to create a combined Singapore map 
 ```{r}
 map_sf <- st_make_valid(map_sf)
 
@@ -98,7 +98,7 @@ any(duplicated(trips_by_destination_pts_ppp))
 Binding the ppp data structure to the owin map of Singapore
 
 ```{r}
-#trips_by_destination_pts_ppp = trips_by_destination_pts_ppp[sgmap_owin]
+trips_by_destination_pts_ppp = trips_by_destination_pts_ppp[sgmap_owin]
 ```
 
 Plotting the points on a map. This is a map depicting the different drop-off / destination points across Singapore. Upon conducting a visual inspection on the map, it is imperative that the CBD is a popular destination for grab passengers indicating that most passengers use Grab to travel to their office in time. THis would further be emperically proven using the kernel density of different regions across Singapore subsequently
@@ -120,7 +120,7 @@ tm_shape(map_sf) +
 Plotting Kernel Density 
 
 ```{r}
-trips_by_destination_diggle <- ppp(trips_by_destination_pts_ppp$lon, trips_by_destination_pts_ppp$lat, window = sgmap_owin)
+trips_by_destination_diggle <- ppp(trips_by_destination_pts_ppp$longitude, trips_by_destination_pts_ppp$latitude, window = sgmap_owin)
 summary(trips_by_destination_diggle)
 ```
 
@@ -129,20 +129,13 @@ Plotting Kernel Density
 ```{r}
 #bw_diggle <- bw.diggle(trips_by_destination_diggle)
 
-#trips_by_destination_diggle <- density(trips_by_destination_diggle, sigma = 2 * as.numeric(bw.diggle), edge = TRUE, kernel = "gaussian")
+#trips_by_destination_diggle <- #trips_by_destination_diggle[!is.na(trips_by_destination_diggle$x) & #!is.na(trips_by_destination_diggle$y)]
 
+#trips_by_destination_diggle <- density(trips_by_destination_diggle, sigma = 2 * ##as.numeric(bw.diggle), edge = TRUE, kernel = "gaussian")
 
 
 #plot(trips_by_destination_diggle, main = "bw.diggle")
 
 ```
-
-
-
-Planned approach
-
-Transform aspatial data (Follow In-class Exercise 2)
-
-Plot on map using NKDE (Owin objects thingy) (Follow In-class Exercise 3)
 
 
