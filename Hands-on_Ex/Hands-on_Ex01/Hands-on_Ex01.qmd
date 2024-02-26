@@ -1,5 +1,14 @@
 ---
 title: "Hands-on_Ex01: Geospatial Data Wrangling with R"
+
+author: Kabeer
+date: "February 22, 2024"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  warning: false
+  freeze: true
 ---
 
 # Getting Started

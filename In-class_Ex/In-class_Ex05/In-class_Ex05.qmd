@@ -1,5 +1,13 @@
 ---
 title: "In-class_Ex05: Global and Local measures of Spatial Autocorrelation"
+author: Kabeer
+date: "February 22, 2024"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  warning: false
+  freeze: true
 ---
 
 Installing relevant R packages
@@ -46,7 +54,7 @@ Computing Moran I
 #moranI <- global_moran_test(wm_q$GDPPC, wm_q$nb, wm_q$wt, nsim = 99)
 ```
 
-Global Moran permutation test
+Global Moran permutation test (Monte Carlo Simulation)
 ```{r}
 #global_moran_perm(wm_q$GDPPC, wm_q, wm_q$nb, wm_q$wt, nsim = 99)
 ```

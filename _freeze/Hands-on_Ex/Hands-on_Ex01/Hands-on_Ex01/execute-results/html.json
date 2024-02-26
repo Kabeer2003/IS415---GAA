@@ -1,0 +1,16 @@
+{
+  "hash": "5964644f0fe09856767a73dd3172725c",
+  "result": {
+    "markdown": "---\ntitle: \"Hands-on_Ex01: Geospatial Data Wrangling with R\"\n\nauthor: Kabeer\nDate: \"February 22, 2024\"\nexecute: \n  eval: true\n  echo: true\n  message: false\n  warning: false\n  freeze: true\n---\n\n\n# Getting Started\n\n## Installing and Loading R packages\n\nIn this section, I will install and load tidyverse and sf packages.\n\n\n::: {.cell}\n\n```{.r .cell-code}\npacman::p_load(sf, tidyverse)\n```\n:::\n\n\n## Importing relevant geospatial data in shapefile format\n\n\n::: {.cell}\n\n```{.r .cell-code}\nmpsz <- sf::st_read(dsn = \"D:/Kabeer2003/IS415 - GAA/Hands-on_Ex/Hands-on_Ex01/data/geospatial\")\n```\n\n::: {.cell-output .cell-output-stdout}\n```\nReading layer `MP14_SUBZONE_NO_SEA_PL' from data source \n  `D:\\Kabeer2003\\IS415 - GAA\\Hands-on_Ex\\Hands-on_Ex01\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 323 features and 15 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33\nProjected CRS: SVY21\n```\n:::\n:::\n\n\n## Plotting the geospatial data\n\n\n::: {.cell}\n\n```{.r .cell-code}\nplot(mpsz)\n```\n\n::: {.cell-output-display}\n![](Hands-on_Ex01_files/figure-html/unnamed-chunk-3-1.png){width=672}\n:::\n:::\n\n\n**WORK IN PROGRESS**\n",
+    "supporting": [
+      "Hands-on_Ex01_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

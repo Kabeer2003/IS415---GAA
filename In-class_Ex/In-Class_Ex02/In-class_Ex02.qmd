@@ -1,7 +1,15 @@
+---
 title: R for Geospatial Data Science
-html:
-  code_fold = True
-  code_summary = 
+
+author: Kabeer
+date: "February 22, 2024"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  warning: false
+  freeze: true
+---
 
 Installing relevant r packages
 

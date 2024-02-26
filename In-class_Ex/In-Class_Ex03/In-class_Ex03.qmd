@@ -1,5 +1,14 @@
 ---
 title: "In-class_Ex03"
+
+author: Kabeer
+date: "February 22, 2024"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  warning: false
+  freeze: true
 ---
 
 ```{r}

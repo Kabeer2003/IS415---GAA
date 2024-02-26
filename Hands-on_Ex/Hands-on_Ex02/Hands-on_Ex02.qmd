@@ -1,5 +1,14 @@
 ---
 title: "Hands-on_Ex02:Thematic Mapping and GeoVisualisation with R"
+author: Kabeer
+date: "February 22, 2024"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  warning: false
+  freeze: true
+
 ---
 
 Loading relevant packages

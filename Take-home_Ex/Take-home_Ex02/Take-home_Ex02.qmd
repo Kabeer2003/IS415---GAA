@@ -1,0 +1,13 @@
+---
+title: "Take-home_Ex02"
+
+author: Kabeer
+date: "February 22, 2024"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  warning: false
+  freeze: true
+---
+

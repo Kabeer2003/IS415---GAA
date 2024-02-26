@@ -1,0 +1,14 @@
+{
+  "hash": "54ab451a1b9582386f2a62042511471f",
+  "result": {
+    "markdown": "---\ntitle: R for Geospatial Data Science\n\nauthor: Kabeer\nDate: \"February 22, 2024\"\nexecute: \n  eval: true\n  echo: true\n  message: false\n  warning: false\n  freeze: true\n---\n\n\nInstalling relevant r packages\n\n\n::: {.cell}\n\n```{.r .cell-code}\npacman::p_load(arrow, lubridate, tidyverse, sf, tmap)\n```\n:::\n\n\nImporting GrabPosisi data \n\n\n::: {.cell}\n\n```{.r .cell-code}\ngrabdata <- read_parquet(\"D:/Kabeer2003/IS415 - GAA/In-class_Ex/In-class_Ex02/data/GrabPosisi/part-00000.parquet\")\n```\n:::\n\n::: {.cell}\n\n```{.r .cell-code}\ngrabdata$pingtimestamp <- as_datetime(grabdata$pingtimestamp)\n```\n:::\n\n\nExtract trip start time\n\n\n::: {.cell}\n\n```{.r .cell-code}\norigin_df <- grabdata %>%\n  group_by(trj_id) %>%\n  arrange(pingtimestamp) %>%\n  filter(row_number() == 1) %>%\n  mutate(weekday = wday(pingtimestamp, label = TRUE, abbr = TRUE), \n         start_hr = factor(hour(pingtimestamp)),\n         day = factor(mday(pingtimestamp)))\n```\n:::\n\n\n\nExtract destination location\n\n\n::: {.cell}\n\n```{.r .cell-code}\ndestination_df <- grabdata %>%\n  group_by(trj_id) %>%\n  mutate(max_row = n()) %>%\n  arrange(desc(pingtimestamp)) %>%\n  filter(row_number() == max_row) %>%\n  mutate(weekday = wday(pingtimestamp, label = TRUE, abbr = TRUE), \n         end_hr = factor(hour(pingtimestamp)),\n         day = factor(mday(pingtimestamp))) %>%\n  select(-max_row)\n```\n:::\n\n\nWriting the data from origin and destintion dataframes into\nrespective RDS file\n\n\n::: {.cell}\n\n```{.r .cell-code}\ndirectory_path <- \"D:/Kabeer2003/IS415 - GAA/In-class_Ex/In-class_Ex02/data/rds/\"\n\nif (!dir.exists(directory_path)) {\n  dir.create(directory_path, recursive = TRUE)\n}\n\nwrite_rds(origin_df, file.path(directory_path, \"origin_df.rds\"))\nwrite_rds(destination_df, file.path(directory_path, \"destination_df.rds\"))\n```\n:::\n\n\nRead data from existing rds files\n\n\n::: {.cell}\n\n```{.r .cell-code}\norigin_df <- read_rds(\"D:/Kabeer2003/IS415 - GAA/In-class_Ex/In-class_Ex02/data/rds/origin_df.rds\")\n\ndestination_df <- read_rds(\"D:/Kabeer2003/IS415 - GAA/In-class_Ex/In-class_Ex02/data/rds/destination_df.rds\")\n```\n:::\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
