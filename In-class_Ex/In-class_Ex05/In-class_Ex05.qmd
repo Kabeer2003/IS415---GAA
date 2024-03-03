@@ -29,7 +29,7 @@ Left-joining the Geospatial Hunan spatial polygon with the aspatial Hunan2012 cs
 ```{r}
 #Use alternate variables to retain spatial properties
 hunan_GDPPC <- left_join(hunan,hunan2012)%>%
-  select(1:4, 7, 15)
+  dplyr::select("County", "City", "avg_wage", "deposite", "Gov_Exp", "GDPPC")
 ```
 
 Plotting the map
@@ -49,14 +49,18 @@ wm_q <- hunan_GDPPC %>%
          .before = 1)
 ```
 
-Computing Moran I
+Computing Moran I test for the whole study area and 
 ```{r}
-#moranI <- global_moran_test(wm_q$GDPPC, wm_q$nb, wm_q$wt, nsim = 99)
+moranI <- global_moran(wm_q$GDPPC,
+                       wm_q$nb,
+                       wm_q$wt)
+
+glimpse(moranI)
 ```
 
 Global Moran permutation test (Monte Carlo Simulation)
 ```{r}
-#global_moran_perm(wm_q$GDPPC, wm_q, wm_q$nb, wm_q$wt, nsim = 99)
+global_moran_perm(wm_q$GDPPC, wm_q, wm_q$nb, wm_q$wt, nsim = 99)
 ```
 
 
