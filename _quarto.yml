@@ -29,7 +29,8 @@ website:
         
       - text: "Take-Home Exercises"
         menu: 
-        - text: Fixing Website Issue here
+        - text: "Take-Home Exercise 2"
+          href: "Take-home_Ex/Take-home_Ex02/Take-home_Ex02.html"
         
     right:
       - href: index.html
