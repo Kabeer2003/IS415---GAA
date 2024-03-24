@@ -33,6 +33,9 @@ website:
         menu: 
         - text: "Take-Home Exercise 2"
           href: "Take-home_Ex/Take-home_Ex02/Take-home_Ex02.html"
+        - text: "Take-Home Exercise 3"
+          href: "Take-home_Ex/Take-home_Ex03/Take-home_Ex03.html"
+          
         
     right:
       - href: index.html

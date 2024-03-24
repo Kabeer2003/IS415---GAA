@@ -1,0 +1,327 @@
+---
+title: "Take_home_Ex03 test"
+
+author: Kabeer
+date: "March 23, 2024"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  warning: false
+  freeze: true
+---
+
+```{r}
+#|eval: False
+pacman::p_load(sf, sp, spdep, sfdep, tmap, tidyverse, knitr, tibble, dplyr, lubridate, spacetime, stars, plotly, stringr, spatstat, maptools, raster)
+```
+
+```{r}
+singapore_mpsz = st_read("D:/Kabeer2003/GAA Project Group 5/GAA-Project-2024-Group-5-/data/geospatial/MP14_SUBZONE_WEB_PL.shp")
+```
+
+```{r}
+crs_info1 <- st_crs(singapore_mpsz)
+print(crs_info1[1])
+
+singapore_mpsz <- st_transform(singapore_mpsz, crs = 4326)
+
+singapore_mpsz <- st_make_valid(singapore_mpsz)
+
+crs_info1 <- st_crs(singapore_mpsz)
+print(crs_info1[1])
+```
+
+```{r}
+#mrt_lines = st_read("D:/Kabeer2003/GAA Project Group #5/GAA-Project-2024-Group-5-/data/geospatial/gis_osm_railways_free_1.shp")
+```
+
+```{r}
+hawker_centres = read_csv("D:/Kabeer2003/GAA Project Group 5/GAA-Project-2024-Group-5-/data/aspatial/updated_hawker_centres.csv")
+```
+
+```{r}
+hawker_stalls = read_csv("D:/Kabeer2003/GAA Project Group 5/GAA-Project-2024-Group-5-/data/aspatial/updated_hawker_stalls.csv")
+```
+
+```{r}
+if(is.numeric(hawker_centres$`Postal Code`)) {
+  hawker_centres$`Postal Code` <- as.character(hawker_centres$`Postal Code`)
+}
+
+# Convert the 'Postal Code' column in hawker_stalls to character if it's numeric
+if(is.numeric(hawker_stalls$`Postal Code`)) {
+  hawker_stalls$`Postal Code` <- as.character(hawker_stalls$`Postal Code`)
+}
+```
+
+```{r}
+combined_data <- left_join(hawker_centres, hawker_stalls, by = "Postal Code")
+```
+
+```{r}
+hawker_stalls_data_filtered <- combined_data %>%
+  dplyr::select(`Postal Code`, `Hawker Centres`, Longitude, Latitude, `Hawker Centre Stalls`)
+```
+
+```{r}
+filtered_hawker_stalls_data_clean <- hawker_stalls_data_filtered[!is.na(hawker_stalls_data_filtered$Longitude) & !is.na(hawker_stalls_data_filtered$Latitude), ]
+
+```
+
+```{r}
+filtered_hawker_stalls_data_sf <- st_as_sf(filtered_hawker_stalls_data_clean, coords = c("Longitude", "Latitude"), crs = 4326)
+```
+
+```{r}
+crs_info2 <- st_crs(filtered_hawker_stalls_data_sf)
+print(crs_info2[1])
+
+filtered_hawker_stalls_data_sf <- st_transform(filtered_hawker_stalls_data_sf, crs = 4326)
+
+crs_info2 <- st_crs(filtered_hawker_stalls_data_sf)
+print(crs_info2[1])
+```
+
+```{r}
+filtered_hawker_stalls_data_sf <- filtered_hawker_stalls_data_sf %>%
+  filter(!is.na(`Hawker Centre Stalls`))
+```
+
+```{r}
+filtered_hawker_stalls_data_sf <- filtered_hawker_stalls_data_sf %>%
+  filter(!grepl("Back to", `Hawker Centre Stalls`))
+```
+
+```{r}
+complete_filtered_hawker_stalls_data_sf <- filtered_hawker_stalls_data_sf %>%
+  filter(grepl("#", `Hawker Centre Stalls`))
+```
+
+```{r}
+crs_info3 <- st_crs(complete_filtered_hawker_stalls_data_sf)
+print(crs_info3[1])
+
+complete_filtered_hawker_stalls_data_sf <- st_transform(complete_filtered_hawker_stalls_data_sf, 4326)
+
+crs_info3 <- st_crs(complete_filtered_hawker_stalls_data_sf)
+print(crs_info3[1])
+```
+
+```{r}
+singapore_mpsz <- st_transform(singapore_mpsz, 4326)
+singapore_mpsz <- st_make_valid(singapore_mpsz)
+
+complete_filtered_hawker_stalls_data_sf <- st_transform(complete_filtered_hawker_stalls_data_sf, 4326)
+complete_filtered_hawker_stalls_data_sf <- st_make_valid(complete_filtered_hawker_stalls_data_sf)
+```
+
+```{r}
+hawkers_united = st_join(singapore_mpsz, complete_filtered_hawker_stalls_data_sf)
+```
+
+```{r}
+hawkers_by_region <- hawkers_united %>%
+  dplyr::select(`PLN_AREA_N`, `REGION_N`, `Postal Code`, `Hawker Centres`, `Hawker Centre Stalls`, geometry)
+```
+
+```{r}
+hawkers_all_regions <- hawkers_by_region %>%
+  filter(!is.na(`Postal Code`))
+```
+
+```{r}
+tmap_mode("plot")
+tm_shape(singapore_mpsz) +
+  tm_polygons() + 
+tm_shape(hawkers_all_regions) +
+  tm_dots(col = "red", size = 0.1)
+```
+
+```{r}
+directory_path <- "D:/Kabeer2003/GAA Project Group 5/GAA-Project-2024-Group-5-/data"
+
+if (!dir.exists(directory_path)) {
+  dir.create(directory_path, recursive = TRUE)
+}
+
+write_rds(hawkers_all_regions, file.path(directory_path, "hawkers_all_regions.rds"))
+```
+
+```{r}
+test <- read_rds("D:/Kabeer2003/GAA Project Group 5/GAA-Project-2024-Group-5-/data/hawkers_all_regions.rds")
+```
+
+```{r}
+singapore_mpsz <- st_transform(singapore_mpsz, 3414)
+singapore_mpsz <- st_make_valid(singapore_mpsz)
+
+complete_filtered_hawker_stalls_data_sf <- st_transform(complete_filtered_hawker_stalls_data_sf, 3414)
+complete_filtered_hawker_stalls_data_sf <- st_make_valid(complete_filtered_hawker_stalls_data_sf)
+```
+
+```{r}
+hawker_centre_pts <- as_Spatial(complete_filtered_hawker_stalls_data_sf) 
+singapore_mpsz1 <- as_Spatial(singapore_mpsz)
+```
+
+```{r}
+hawker_centre_pts_sp <- as(hawker_centre_pts, "SpatialPoints") 
+singapore_mpsz_sp <- as(singapore_mpsz1, "SpatialPolygons")
+```
+
+```{r}
+singapore_owin <- as(singapore_mpsz_sp, "owin")
+plot(singapore_owin)
+```
+
+```{r}
+summary(singapore_owin)
+```
+
+```{r}
+hawker_centres_ppp <- as(hawker_centre_pts_sp, "ppp")
+plot(hawker_centres_ppp)
+```
+
+```{r}
+summary(hawker_centres_ppp)
+```
+
+```{r}
+hawkers_SG_ppp = hawker_centres_ppp[singapore_owin]
+plot(hawkers_SG_ppp)
+```
+
+```{r}
+hawkers_SG_ppp <- rescale(hawkers_SG_ppp, 1000, "km")
+```
+
+```{r}
+kde_hawkers_bw <- density(hawkers_SG_ppp, sigma=0.8, edge=TRUE, kernel="gaussian")
+plot(kde_hawkers_bw)
+```
+
+```{r}
+bw.CvL(hawkers_SG_ppp)
+```
+
+```{r}
+bw.scott(hawkers_SG_ppp)
+```
+
+```{r}
+bw.ppl(hawkers_SG_ppp)
+```
+
+```{r}
+bw.diggle(hawkers_SG_ppp)
+```
+
+Filter by food option and planning area
+```{r}
+filtered_df <- hawkers_all_regions[
+  grepl("roast", hawkers_all_regions$`Hawker Centre Stalls`, ignore.case = TRUE) &
+  hawkers_all_regions$REGION_N == "CENTRAL REGION", 
+]
+```
+
+
+```{r}
+sg_central_region <- singapore_mpsz %>%
+  filter(REGION_N == "CENTRAL REGION")
+```
+
+```{r}
+central_sp <- as_Spatial(sg_central_region)
+central_sp = as(central_sp, "SpatialPolygons")
+```
+
+```{r}
+central_owin = as(central_sp, "owin")
+plot(central_owin)
+```
+
+```{r}
+bukit_merah <- singapore_mpsz %>%
+  filter(PLN_AREA_N == "BUKIT MERAH")
+```
+
+```{r}
+BM_sp <- as_Spatial(bukit_merah)
+BM_sp = as(BM_sp, "SpatialPolygons")
+```
+
+```{r}
+BM_owin = as(BM_sp, "owin")
+plot(BM_owin)
+```
+
+```{r}
+roasted_meat <- complete_filtered_hawker_stalls_data_sf[
+  grepl("roast", complete_filtered_hawker_stalls_data_sf$`Hawker Centre Stalls`, ignore.case = TRUE), 
+]
+```
+
+```{r}
+roasted_meat_sp <- as_Spatial(roasted_meat)
+roasted_meat_sp = as(roasted_meat_sp, "SpatialPoints")
+```
+
+```{r}
+roasted_meat_ppp <- as(roasted_meat_sp, "ppp")
+plot(roasted_meat_ppp)
+```
+
+
+```{r}
+roasted_meat_central_ppp = roasted_meat_ppp[central_owin]
+plot(roasted_meat_central_ppp)
+```
+
+```{r}
+roasted_meat_BM_ppp = roasted_meat_ppp[BM_owin]
+plot(roasted_meat_BM_ppp)
+```
+
+```{r}
+G_C = Gest(roasted_meat_central_ppp, correction = "border")
+plot(G_C, xlim=c(0,1000))
+```
+
+```{r}
+F_C = Fest(roasted_meat_central_ppp)
+plot(F_C)
+```
+
+```{r}
+F_C.csr <- envelope(roasted_meat_central_ppp, Fest, nsim = 500)
+```
+
+```{r}
+plot(F_C.csr)
+```
+
+```{r}
+K_c = Kest(roasted_meat_central_ppp, correction = "Ripley")
+plot(K_c, . -r ~ r, ylab= "K(d)-r", xlab = "d(m)")
+```
+
+```{r}
+L_c = Lest(roasted_meat_central_ppp, correction = "Ripley")
+plot(L_c, . -r ~ r, 
+     ylab= "L(d)-r", xlab = "d(m)")
+```
+
+Inputs:
+Filter by region: Central, East, West, North, Northeast
+Filter by planning area: Downtown Core, Rochor, Bukit Merah, Geylang
+Filter by food: Lor Mee, Roasted Meat, Ban Mian, Chicken Rice
+Filter by Dietary Restrictions
+
+
+
+
+
+
+

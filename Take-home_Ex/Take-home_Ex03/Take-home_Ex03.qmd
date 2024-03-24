@@ -1,0 +1,473 @@
+---
+title: "Take_home_Ex03 test"
+
+author: Kabeer
+date: "March 23, 2024"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  warning: false
+  freeze: true
+---
+
+## Installing relevant R packages
+
+```{r}
+#|eval: False
+pacman::p_load(sf, sp, spdep, sfdep, tmap, tidyverse, knitr, tibble, dplyr, lubridate, spacetime, stars, plotly, stringr, spatstat, maptools, raster)
+```
+
+## Importing and Pre-processing Data
+
+#### Importing Geospatial Data 
+
+Importing the shapefile MP14_SUBZONE_WEB_PL.shp
+
+```{r}
+singapore_mpsz = st_read("data/geospatial/MP14_SUBZONE_WEB_PL.shp")
+```
+
+Transforming the Coordinate Reference System (CRS) from SVY21 to WGS84 to ensure that our aspatial and geospatial data are compatible with each other
+
+```{r}
+crs_info1 <- st_crs(singapore_mpsz)
+print(crs_info1[1])
+
+singapore_mpsz <- st_transform(singapore_mpsz, crs = 4326)
+
+singapore_mpsz <- st_make_valid(singapore_mpsz)
+
+crs_info1 <- st_crs(singapore_mpsz)
+print(crs_info1[1])
+```
+
+#### Importing Aspatial Data 
+
+Importing the csv file 'updated_hawker_centres.csv' using the read_csv() method
+
+```{r}
+hawker_centres = read_csv("data/aspatial/updated_hawker_centres.csv")
+```
+
+Importing the csv file 'updated_hawker_stalls.csv' using the read_csv() method
+
+```{r}
+hawker_stalls = read_csv("data/aspatial/updated_hawker_stalls.csv")
+```
+
+Filtering out all values where the postal code is null in order to accurately map hawker centre stalls to the right hawker centres
+
+```{r}
+if(is.numeric(hawker_centres$`Postal Code`)) {
+  hawker_centres$`Postal Code` <- as.character(hawker_centres$`Postal Code`)
+}
+
+# Convert the 'Postal Code' column in hawker_stalls to character if it's numeric
+if(is.numeric(hawker_stalls$`Postal Code`)) {
+  hawker_stalls$`Postal Code` <- as.character(hawker_stalls$`Postal Code`)
+}
+```
+
+Left joining all hawker food stalls to hawker centres using their postal code.
+
+**NOTE**: Every hawker centre could be uniquely identified using a postal code and one hawker centre has multiple stalls in it
+
+```{r}
+combined_data <- left_join(hawker_centres, hawker_stalls, by = "Postal Code")
+```
+
+Filtering out relevant fields for analysis from the dataset
+
+```{r}
+hawker_stalls_data_filtered <- combined_data %>%
+  dplyr::select(`Postal Code`, `Hawker Centres`, Longitude, Latitude, `Hawker Centre Stalls`)
+```
+
+Eliminating all hawkers which do not have a longitude and latitude (Attempting to remove all null values that could potentially hinder analysis)
+
+```{r}
+filtered_hawker_stalls_data_clean <- hawker_stalls_data_filtered[!is.na(hawker_stalls_data_filtered$Longitude) & !is.na(hawker_stalls_data_filtered$Latitude), ]
+
+```
+
+Converting the joint data to a sf dataframe
+
+```{r}
+filtered_hawker_stalls_data_sf <- st_as_sf(filtered_hawker_stalls_data_clean, coords = c("Longitude", "Latitude"), crs = 4326)
+```
+
+Ensuring that the data is the correct coordinate reference system i.e. WGS84
+
+```{r}
+crs_info2 <- st_crs(filtered_hawker_stalls_data_sf)
+print(crs_info2[1])
+
+filtered_hawker_stalls_data_sf <- st_transform(filtered_hawker_stalls_data_sf, crs = 4326)
+
+crs_info2 <- st_crs(filtered_hawker_stalls_data_sf)
+print(crs_info2[1])
+```
+
+Since the two csv files for the aspatial data were derived from PDFs, further cleansing would be cleansed on the joint dataframe.
+
+```{r}
+filtered_hawker_stalls_data_sf <- filtered_hawker_stalls_data_sf %>%
+  filter(!is.na(`Hawker Centre Stalls`))
+```
+
+Removing all fields where the attribute hawker centres contains the phrase 'Back to'
+
+```{r}
+filtered_hawker_stalls_data_sf <- filtered_hawker_stalls_data_sf %>%
+  filter(!grepl("Back to", `Hawker Centre Stalls`))
+```
+
+We need to ensure that each hawker stall has a unit no. within the hawker centre. Consequently, we would be checking if the if the hawker centre stalls field contains the character '\#' indicating that a unit number is present
+
+**Real World Context:** Every stall in the hawker centre has a unit number indicating the location of the hawker within the food centre. It is usually in the format #01-XXX
+
+```{r}
+complete_filtered_hawker_stalls_data_sf <- filtered_hawker_stalls_data_sf %>%
+  filter(grepl("#", `Hawker Centre Stalls`))
+```
+
+Once again confirming that the coordinate reference system is WGS84 so that we could combine our aspatial data with our geospatial data i.e. the map.
+
+```{r}
+crs_info3 <- st_crs(complete_filtered_hawker_stalls_data_sf)
+print(crs_info3[1])
+
+complete_filtered_hawker_stalls_data_sf <- st_transform(complete_filtered_hawker_stalls_data_sf, 4326)
+
+crs_info3 <- st_crs(complete_filtered_hawker_stalls_data_sf)
+print(crs_info3[1])
+```
+
+Ensuring that our data is valid
+
+```{r}
+singapore_mpsz <- st_transform(singapore_mpsz, 4326)
+singapore_mpsz <- st_make_valid(singapore_mpsz)
+
+complete_filtered_hawker_stalls_data_sf <- st_transform(complete_filtered_hawker_stalls_data_sf, 4326)
+complete_filtered_hawker_stalls_data_sf <- st_make_valid(complete_filtered_hawker_stalls_data_sf)
+```
+
+#### Joining our Geospatial and Aspatial data together
+
+Now, we would be using st_join to combine our geospatial data with our aspatial data, it is imperative that every hawker centre belongs to a region and planning area and joining the data would ensure that the each hawker centre is mapped to the right region and planning area.
+
+```{r}
+hawkers_united = st_join(singapore_mpsz, complete_filtered_hawker_stalls_data_sf)
+```
+
+Filtering out fields relevant for analysis.
+
+```{r}
+hawkers_by_region <- hawkers_united %>%
+  dplyr::select(`PLN_AREA_N`, `REGION_N`, `Postal Code`, `Hawker Centres`, `Hawker Centre Stalls`, geometry)
+```
+
+Now removing all redundant areas which do not have hawker centres, by filtering this dataframes where the postal code is null, we would automatically remove areas which do not have hawker centres such as Marina South. Furthermore, we could be assured that every hawker centre belongs to a planning area.
+
+```{r}
+hawkers_all_regions <- hawkers_by_region %>%
+  filter(!is.na(`Postal Code`))
+```
+
+#### Visualisation of all hawker centres on the Singapore Map
+
+Plotting all hawker centres on a map to check if data transformation was correct
+
+```{r}
+tmap_mode("plot")
+tm_shape(singapore_mpsz) +
+  tm_polygons() + 
+tm_shape(hawkers_all_regions) +
+  tm_dots(col = "red", size = 0.1)
+```
+
+#### Storing object in a RDS file for future reference
+
+Saving this data to an rds file for future perusal
+
+```{r}
+directory_path <- "data"
+
+if (!dir.exists(directory_path)) {
+  dir.create(directory_path, recursive = TRUE)
+}
+
+write_rds(hawkers_all_regions, file.path(directory_path, "hawkers_all_regions.rds"))
+```
+
+Testing if we are able to read the rds successfully
+
+```{r}
+test <- read_rds("data/hawkers_all_regions.rds")
+```
+
+Since ppp and owin objects cannot be created in degrees i.e. WGS84, we would have to use a two-dimensional CRS that uses relative distances. Hence we would be converting the coordinate reference system of both our dataframe with all points and the map of Singapore to SVY21.
+
+```{r}
+singapore_mpsz <- st_transform(singapore_mpsz, 3414)
+singapore_mpsz <- st_make_valid(singapore_mpsz)
+
+complete_filtered_hawker_stalls_data_sf <- st_transform(complete_filtered_hawker_stalls_data_sf, 3414)
+complete_filtered_hawker_stalls_data_sf <- st_make_valid(complete_filtered_hawker_stalls_data_sf)
+```
+
+Converting both SF dataframes (Geospatial and Aspatial) to SP (Spatial format)
+
+```{r}
+hawker_centre_pts <- as_Spatial(complete_filtered_hawker_stalls_data_sf) 
+singapore_mpsz1 <- as_Spatial(singapore_mpsz)
+```
+
+#### Converting hawker centre points and the Singapore map to SP
+
+The map data would be converted to spatial polygons which represent the different sub-regions in Singapore whereas the hawker centre points would be converted to Spatial Points.
+
+```{r}
+hawker_centre_pts_sp <- as(hawker_centre_pts, "SpatialPoints") 
+singapore_mpsz_sp <- as(singapore_mpsz1, "SpatialPolygons")
+```
+
+#### Creating owin object (Singapore Map)
+
+Converting the Singapore map sp object to an owin object
+
+```{r}
+singapore_owin <- as(singapore_mpsz_sp, "owin")
+plot(singapore_owin)
+```
+
+```{r}
+summary(singapore_owin)
+```
+
+#### Creating PPP object (Hawker Centres)
+
+Now, we would convert the data on different hawker centres in Singapore to PPP format
+
+```{r}
+hawker_centres_ppp <- as(hawker_centre_pts_sp, "ppp")
+plot(hawker_centres_ppp)
+```
+
+```{r}
+summary(hawker_centres_ppp)
+```
+
+To ensure that all our points are accurately in the desired range of our study area, we would be binding the hawker centres ppp object to the Singapore owin object
+
+```{r}
+hawkers_SG_ppp = hawker_centres_ppp[singapore_owin]
+plot(hawkers_SG_ppp)
+```
+
+Next we would be converting the unit of scale to kilometers
+
+```{r}
+hawkers_SG_ppp <- rescale(hawkers_SG_ppp, 1000, "km")
+```
+
+## First-Order Spatial-Point Analysis: Kernel Density
+
+#### Finding Kernel Density
+
+Finding the kernel density of hawker centres all across Singapore
+
+```{r}
+kde_hawkers_bw <- density(hawkers_SG_ppp, sigma=0.8, edge=TRUE, kernel="gaussian")
+plot(kde_hawkers_bw)
+```
+
+Different bandwith tests
+
+```{r}
+bw.CvL(hawkers_SG_ppp)
+```
+
+```{r}
+bw.scott(hawkers_SG_ppp)
+```
+
+```{r}
+bw.ppl(hawkers_SG_ppp)
+```
+
+```{r}
+bw.diggle(hawkers_SG_ppp)
+```
+
+Filter by food option and planning area
+
+```{r}
+filtered_df <- hawkers_all_regions[
+  grepl("roast", hawkers_all_regions$`Hawker Centre Stalls`, ignore.case = TRUE) &
+  hawkers_all_regions$REGION_N == "CENTRAL REGION", 
+]
+```
+
+## Diving Deeper (EDA + Playing Around):
+
+We could even filter out different areas within Singapore. the example below includes filtering by region i.e. the central region in Singapore
+
+#### Creating an OWIN Object (Central Region) 
+
+Repeating the same process
+
+```{r}
+sg_central_region <- singapore_mpsz %>%
+  filter(REGION_N == "CENTRAL REGION")
+```
+
+```{r}
+central_sp <- as_Spatial(sg_central_region)
+central_sp = as(central_sp, "SpatialPolygons")
+```
+
+```{r}
+central_owin = as(central_sp, "owin")
+plot(central_owin)
+```
+
+#### Creating an OWIN Object (Bukit Merah)
+
+In addition to just the different regions of Singapore, we could also zoom in and dive into individual planning areas of Singapore to gauge second order spatial point pattens within Bukit Merah.
+
+Repeating the same process
+
+```{r}
+bukit_merah <- singapore_mpsz %>%
+  filter(PLN_AREA_N == "BUKIT MERAH")
+```
+
+```{r}
+BM_sp <- as_Spatial(bukit_merah)
+BM_sp = as(BM_sp, "SpatialPolygons")
+```
+
+```{r}
+BM_owin = as(BM_sp, "owin")
+plot(BM_owin)
+```
+
+#### Creating an PPP Object (Filtering by Food) 
+
+Within our dataset, we could also filter out some of the finest culinary delicacies eg. Ban Mian, Lor Mee, Chicken Rice etc.
+
+Filtering out all roasted meat places in Singapore
+
+```{r}
+roasted_meat <- complete_filtered_hawker_stalls_data_sf[
+  grepl("roast", complete_filtered_hawker_stalls_data_sf$`Hawker Centre Stalls`, ignore.case = TRUE), 
+]
+```
+
+Converting the points of all roasted meat hawker stalls in Singapore to the SP format in the form of spatial points. When plotted on a map, we would be able to see the different hawker centres in Singapore with stalls that serve the cantonese style roasted meats
+
+```{r}
+roasted_meat_sp <- as_Spatial(roasted_meat)
+roasted_meat_sp = as(roasted_meat_sp, "SpatialPoints")
+```
+
+Converting the SP object to a PPP object (roasted_meat_ppp)
+
+```{r}
+roasted_meat_ppp <- as(roasted_meat_sp, "ppp")
+plot(roasted_meat_ppp)
+```
+
+## Second-Order Spatial Point Pattern Analysis
+
+Now, we would be doing a second order spatial point analysis on all hawker centres in the central area that serve roasted meat i.e. we would be filtering all hawker centres in the central area that have stalls serving roasted meats.
+
+Binding the roasted meats ppp object to the central area owin object
+
+```{r}
+roasted_meat_central_ppp = roasted_meat_ppp[central_owin]
+plot(roasted_meat_central_ppp)
+```
+
+Similarly, we could also restrict our study area to just the planning area of Bukit Merah
+
+```{r}
+roasted_meat_BM_ppp = roasted_meat_ppp[BM_owin]
+plot(roasted_meat_BM_ppp)
+```
+
+However, for the course of our study we would be using the central area.
+
+#### G-test
+
+```{r}
+G_C = Gest(roasted_meat_central_ppp, correction = "border")
+plot(G_C, xlim=c(0,1000))
+```
+
+```{r}
+G_C.csr <- envelope(roasted_meat_central_ppp, Gest, nsim = 100)
+```
+
+```{r}
+plot(G_C.csr)
+```
+
+#### F-test
+
+```{r}
+F_C = Fest(roasted_meat_central_ppp)
+plot(F_C)
+```
+
+```{r}
+F_C.csr <- envelope(roasted_meat_central_ppp, Fest, nsim = 100)
+```
+
+```{r}
+plot(F_C.csr)
+```
+
+#### K-test
+
+```{r}
+K_C = Kest(roasted_meat_central_ppp, correction = "Ripley")
+plot(K_C, . -r ~ r, ylab= "K(d)-r", xlab = "d(m)")
+```
+
+```{r}
+K_C.csr <- envelope(roasted_meat_central_ppp, Kest, nsim = 20, rank = 1, glocal=TRUE)
+```
+
+```{r}
+plot(K_C.csr, . - r ~ r, xlab="d", ylab="K(d)-r")
+```
+
+#### L-test
+
+```{r}
+L_C = Lest(roasted_meat_central_ppp, correction = "Ripley")
+plot(L_C, . -r ~ r, 
+     ylab= "L(d)-r", xlab = "d(m)")
+```
+
+```{r}
+L_C.csr <- envelope(roasted_meat_central_ppp, Lest, nsim = 20, rank = 1, glocal=TRUE)
+```
+
+```{r}
+plot(L_C.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
+```
+
+## **Potential Inputs for shiny app (To analyse second-order spatial point patterns):** 
+
+-   Filter by region: Central, East, West, North, Northeast
+
+-   Filter by planning area: Downtown Core, Rochor, Bukit Merah, Geylang
+
+-   Filter by dish: Lor Mee, Roasted Meat, Ban Mian, Chicken Rice
+
+-   Filter by Dietary Restrictions
