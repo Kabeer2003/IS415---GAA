@@ -10,7 +10,7 @@ execute:
   freeze: true
 ---
 
-Installing relevant R packages
+## Installing relevant R packages
 
 ```{r}
 #|eval: False
@@ -19,7 +19,7 @@ install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-
 pacman::p_load(arrow, classInt, ggplot2, lubridate, maptools, raster, sf, spatstat, sp, spNetwork, tidyverse, tmap, viridis)
 ```
 
-Importing Geopatial Data
+## Importing and Transforming Geopatial Data
 
 a)  Importing the map of Singapore with subzone boundaries (as of 2019)
 
@@ -43,7 +43,7 @@ roads_sf <- st_transform(roads_sf, crs = 4326)
 roads_sf <- roads_sf %>% filter(fclass %in% c("primary", "secondary", "tertiary", "motorway", "trunk"), !is.na(name))
 ```
 
-Importing Aspatial Data
+## Importing and Transforming Aspatial Data
 
 a)  (GrabPosisi): Includes timestamps and destination points for each trip
 
@@ -57,9 +57,11 @@ Extracting all destination points and to ensure that the pt is a destination pt,
 trips_by_destination_pts <- grabdata %>%
   group_by(trj_id) %>%
   slice(n()) %>%
-  filter(speed <= 0.25 && speed >= -0.25) %>%  
+  filter(speed <= 0.1 && speed >= -0.1) %>%  
   select(trj_id, latitude = rawlat, longitude = rawlng, speed, pingtimestamp, weekday)
 ```
+
+**Convert destination pts to sf dataframe**
 
 Converting all extracted destination points to an sf dataframe so that they could be plotted on a map
 
@@ -70,6 +72,8 @@ trips_by_destination_pts <- st_as_sf(trips_by_destination_pts, coords = c("longi
 To plot the kernel density of destination pts on a map, we need to create a ppp object of all destination points which is binded to the map of Singapore.
 
 Since ppp and owin objects cannot be created in degrees i.e. WGS84, we would have to use a two-dimensional CRS that uses relative distances from a reference point eg. SVY21. Hence we would be converting the coordinate reference system of both our dataframe with all points and the map of Singapore to SVY21.
+
+## Creating a binded PPP Object
 
 ```{r}
 map_sf <- st_transform(map_sf, 3414)
@@ -108,6 +112,8 @@ summary(trips_by_destination_ppp)
 
 Before binding the ppp object to the owin object, its crucial to eliminate any redundancies (Duplicated pts)
 
+**Eliminating Data Redundancies**
+
 Eliminating redundancies via Jittering (None removed as no redundancies exist in this dataset)
 
 ```{r}
@@ -131,6 +137,8 @@ The same would later be emperically proven using kernel density
 
 Before plotting Kernel Density, we would conver the unit from meters to km and rescale everything such that all distances would be divided by 1000.
 
+## Plotting Kernel Density 
+
 Converting the unit of scale to kilometers
 
 ```{r}
@@ -143,6 +151,8 @@ Map depicting Kernel density of destination pts across Singapore.
 kde_destination_pts_bw <- density(trips_by_destination_ppp, sigma=0.75, edge=TRUE, kernel="gaussian")
 plot(kde_destination_pts_bw)
 ```
+
+## Further Analysis
 
 Based on the kernel density plot, it could be inferred that more passengers alight either in the central area around the CBD / CBD fringe areas comprising primarily of people working in corporate jobs who wish to get to work in time.
 

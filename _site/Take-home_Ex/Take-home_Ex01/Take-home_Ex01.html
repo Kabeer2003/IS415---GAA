@@ -208,7 +208,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#installing-relevant-r-packages" id="toc-installing-relevant-r-packages" class="nav-link active" data-scroll-target="#installing-relevant-r-packages">Installing relevant R packages</a></li>
+  <li><a href="#importing-and-transforming-geopatial-data" id="toc-importing-and-transforming-geopatial-data" class="nav-link" data-scroll-target="#importing-and-transforming-geopatial-data">Importing and Transforming Geopatial Data</a></li>
+  <li><a href="#importing-and-transforming-aspatial-data" id="toc-importing-and-transforming-aspatial-data" class="nav-link" data-scroll-target="#importing-and-transforming-aspatial-data">Importing and Transforming Aspatial Data</a></li>
+  <li><a href="#creating-a-binded-ppp-object" id="toc-creating-a-binded-ppp-object" class="nav-link" data-scroll-target="#creating-a-binded-ppp-object">Creating a binded PPP Object</a></li>
+  <li><a href="#plotting-kernel-density" id="toc-plotting-kernel-density" class="nav-link" data-scroll-target="#plotting-kernel-density">Plotting Kernel Density</a></li>
+  <li><a href="#further-analysis" id="toc-further-analysis" class="nav-link" data-scroll-target="#further-analysis">Further Analysis</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -242,7 +253,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>Installing relevant R packages</p>
+<section id="installing-relevant-r-packages" class="level2">
+<h2 class="anchored" data-anchor-id="installing-relevant-r-packages">Installing relevant R packages</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#|eval: False</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"spatstat"</span>, <span class="at">dependencies =</span> <span class="cn">TRUE</span>, <span class="at">repos =</span> <span class="st">"https://cran.rstudio.com/"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -250,18 +262,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>package 'spatstat' successfully unpacked and MD5 sums checked
 
 The downloaded binary packages are in
-    C:\Users\91770\AppData\Local\Temp\Rtmp4g2hDO\downloaded_packages</code></pre>
+    C:\Users\91770\AppData\Local\Temp\Rtmp8wombd\downloaded_packages</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"maptools"</span>, <span class="at">repos =</span> <span class="st">"https://packagemanager.posit.co/cran/2023-10-13"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>package 'maptools' successfully unpacked and MD5 sums checked
 
 The downloaded binary packages are in
-    C:\Users\91770\AppData\Local\Temp\Rtmp4g2hDO\downloaded_packages</code></pre>
+    C:\Users\91770\AppData\Local\Temp\Rtmp8wombd\downloaded_packages</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(arrow, classInt, ggplot2, lubridate, maptools, raster, sf, spatstat, sp, spNetwork, tidyverse, tmap, viridis)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Importing Geopatial Data</p>
+</section>
+<section id="importing-and-transforming-geopatial-data" class="level2">
+<h2 class="anchored" data-anchor-id="importing-and-transforming-geopatial-data">Importing and Transforming Geopatial Data</h2>
 <ol type="a">
 <li>Importing the map of Singapore with subzone boundaries (as of 2019)</li>
 </ol>
@@ -304,7 +318,9 @@ Geodetic CRS:  WGS 84</code></pre>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>roads_sf <span class="ot">&lt;-</span> roads_sf <span class="sc">%&gt;%</span> <span class="fu">filter</span>(fclass <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"primary"</span>, <span class="st">"secondary"</span>, <span class="st">"tertiary"</span>, <span class="st">"motorway"</span>, <span class="st">"trunk"</span>), <span class="sc">!</span><span class="fu">is.na</span>(name))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Importing Aspatial Data</p>
+</section>
+<section id="importing-and-transforming-aspatial-data" class="level2">
+<h2 class="anchored" data-anchor-id="importing-and-transforming-aspatial-data">Importing and Transforming Aspatial Data</h2>
 <ol type="a">
 <li>(GrabPosisi): Includes timestamps and destination points for each trip</li>
 </ol>
@@ -316,15 +332,19 @@ Geodetic CRS:  WGS 84</code></pre>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>trips_by_destination_pts <span class="ot">&lt;-</span> grabdata <span class="sc">%&gt;%</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(trj_id) <span class="sc">%&gt;%</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(speed <span class="sc">&lt;=</span> <span class="fl">0.25</span> <span class="sc">&amp;&amp;</span> speed <span class="sc">&gt;=</span> <span class="sc">-</span><span class="fl">0.25</span>) <span class="sc">%&gt;%</span>  </span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(speed <span class="sc">&lt;=</span> <span class="fl">0.1</span> <span class="sc">&amp;&amp;</span> speed <span class="sc">&gt;=</span> <span class="sc">-</span><span class="fl">0.1</span>) <span class="sc">%&gt;%</span>  </span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(trj_id, <span class="at">latitude =</span> rawlat, <span class="at">longitude =</span> rawlng, speed, pingtimestamp, weekday)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p><strong>Convert destination pts to sf dataframe</strong></p>
 <p>Converting all extracted destination points to an sf dataframe so that they could be plotted on a map</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>trips_by_destination_pts <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(trips_by_destination_pts, <span class="at">coords =</span> <span class="fu">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>), <span class="at">crs =</span> <span class="dv">4326</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>To plot the kernel density of destination pts on a map, we need to create a ppp object of all destination points which is binded to the map of Singapore.</p>
 <p>Since ppp and owin objects cannot be created in degrees i.e.&nbsp;WGS84, we would have to use a two-dimensional CRS that uses relative distances from a reference point eg. SVY21. Hence we would be converting the coordinate reference system of both our dataframe with all points and the map of Singapore to SVY21.</p>
+</section>
+<section id="creating-a-binded-ppp-object" class="level2">
+<h2 class="anchored" data-anchor-id="creating-a-binded-ppp-object">Creating a binded PPP Object</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>map_sf <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(map_sf, <span class="dv">3414</span>)</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>map_sf <span class="ot">&lt;-</span> <span class="fu">st_make_valid</span>(map_sf)</span>
@@ -762,18 +782,19 @@ Fraction of frame area: 0.423</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(trips_by_destination_ppp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Planar point pattern:  1843 points
-Average intensity 2.112541e-06 points per square unit
+<pre><code>Planar point pattern:  1696 points
+Average intensity 1.952439e-06 points per square unit
 
 Coordinates are given to 3 decimal places
 i.e. rounded to the nearest multiple of 0.001 units
 
-Window: rectangle = [5415.33, 45299.62] x [27598.6, 49472.1] units
-                    (39880 x 21870 units)
-Window area = 872409000 square units</code></pre>
+Window: rectangle = [5415.33, 45299.62] x [27598.6, 49378.02] units
+                    (39880 x 21780 units)
+Window area = 868657000 square units</code></pre>
 </div>
 </div>
 <p>Before binding the ppp object to the owin object, its crucial to eliminate any redundancies (Duplicated pts)</p>
+<p><strong>Eliminating Data Redundancies</strong></p>
 <p>Eliminating redundancies via Jittering (None removed as no redundancies exist in this dataset)</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">duplicated</span>(trips_by_destination_ppp))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -798,6 +819,9 @@ Window area = 872409000 square units</code></pre>
 <p>Another popular destination is the north of Singapore around woodlands checkpoint which indicates that a lot of passengers also hitch a ride to woodlands checkpoint to avoid longer queues at immigration.</p>
 <p>The same would later be emperically proven using kernel density</p>
 <p>Before plotting Kernel Density, we would conver the unit from meters to km and rescale everything such that all distances would be divided by 1000.</p>
+</section>
+<section id="plotting-kernel-density" class="level2">
+<h2 class="anchored" data-anchor-id="plotting-kernel-density">Plotting Kernel Density</h2>
 <p>Converting the unit of scale to kilometers</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>trips_by_destination_ppp <span class="ot">&lt;-</span> <span class="fu">rescale</span>(trips_by_destination_ppp, <span class="dv">1000</span>, <span class="st">"km"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -810,10 +834,14 @@ Window area = 872409000 square units</code></pre>
 <p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
+</section>
+<section id="further-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="further-analysis">Further Analysis</h2>
 <p>Based on the kernel density plot, it could be inferred that more passengers alight either in the central area around the CBD / CBD fringe areas comprising primarily of people working in corporate jobs who wish to get to work in time.</p>
 <p>In addition, an almost equal sizable amount of passengers alight in the north around woodlands (Mostly around the checkpoint) which could be individuals seeking to avoid longer immigration queues heading to Johor and other parts of Malaysia.</p>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
