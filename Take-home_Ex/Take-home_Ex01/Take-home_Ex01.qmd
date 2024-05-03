@@ -1,0 +1,149 @@
+---
+title: "Take-home_Ex01"
+author: Kabeer
+date: "February 22, 2024"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  warning: false
+  freeze: true
+---
+
+Installing relevant R packages
+
+```{r}
+#|eval: False
+install.packages("spatstat", dependencies = TRUE, repos = "https://cran.rstudio.com/")
+install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
+pacman::p_load(arrow, classInt, ggplot2, lubridate, maptools, raster, sf, spatstat, sp, spNetwork, tidyverse, tmap, viridis)
+```
+
+Importing Geopatial Data
+
+a)  Importing the map of Singapore with subzone boundaries (as of 2019)
+
+```{r}
+map_sf <- st_read("data/geospatial/MasterPlan2019SubzoneBoundaryNoSeaGEOJSON.geojson")
+map_sf <- st_zm(map_sf, drop = TRUE)
+map_sf <- st_transform(map_sf, crs = 4326)
+map_sf <- st_make_valid(map_sf)
+```
+
+```{r}
+map_sf <- st_make_valid(map_sf)
+```
+
+b)  Roads for Singapore
+
+```{r}
+roads_sf <- st_read("data/geospatial/singapore_roads.gpkg")
+roads_sf <- st_transform(roads_sf, crs = 4326)
+
+roads_sf <- roads_sf %>% filter(fclass %in% c("primary", "secondary", "tertiary", "motorway", "trunk"), !is.na(name))
+```
+
+Importing Aspatial Data
+
+a)  (GrabPosisi): Includes timestamps and destination points for each trip
+
+```{r}
+grabdata <- read_rds("data/aspatial/rds/destination_df.rds")
+```
+
+Extracting all destination points and to ensure that the pt is a destination pt, we take the last point for every trj_id in addition to which we ensure that the car is stationary (Speed \< 0.1 km/h)
+
+```{r}
+trips_by_destination_pts <- grabdata %>%
+  group_by(trj_id) %>%
+  slice(n()) %>%
+  filter(speed <= 0.25 && speed >= -0.25) %>%  
+  select(trj_id, latitude = rawlat, longitude = rawlng, speed, pingtimestamp, weekday)
+```
+
+Converting all extracted destination points to an sf dataframe so that they could be plotted on a map
+
+```{r}
+trips_by_destination_pts <- st_as_sf(trips_by_destination_pts, coords = c("longitude", "latitude"), crs = 4326)
+```
+
+To plot the kernel density of destination pts on a map, we need to create a ppp object of all destination points which is binded to the map of Singapore.
+
+Since ppp and owin objects cannot be created in degrees i.e. WGS84, we would have to use a two-dimensional CRS that uses relative distances from a reference point eg. SVY21. Hence we would be converting the coordinate reference system of both our dataframe with all points and the map of Singapore to SVY21.
+
+```{r}
+map_sf <- st_transform(map_sf, 3414)
+map_sf <- st_make_valid(map_sf)
+
+trips_by_destination_pts <- st_transform(trips_by_destination_pts, 3414)
+trips_by_destination_pts <- st_make_valid(trips_by_destination_pts)
+```
+
+To create a binded ppp object, the owin and ppp objects can only be created from spatial objects (SP). Hence, we shall convert both the aspatial and geospatial data to a generic sp format first
+
+```{r}
+trips_by_destination_pts <- as_Spatial(trips_by_destination_pts) 
+map <- as_Spatial(map_sf)
+
+trips_by_destination_pts <- as(trips_by_destination_pts, "SpatialPoints") 
+map <- as(map, "SpatialPolygons")
+```
+
+Converting the sp map object to an owin object
+
+```{r}
+sgmap_owin <- as.owin(map)
+
+plot(sgmap_owin)
+summary(sgmap_owin)
+```
+
+Converting aspatial data (the trips by destination points) to the ppp format (which would be used for kernel density eventually)
+
+```{r}
+trips_by_destination_ppp <- as(trips_by_destination_pts, "ppp")
+plot(trips_by_destination_ppp)
+summary(trips_by_destination_ppp)
+```
+
+Before binding the ppp object to the owin object, its crucial to eliminate any redundancies (Duplicated pts)
+
+Eliminating redundancies via Jittering (None removed as no redundancies exist in this dataset)
+
+```{r}
+any(duplicated(trips_by_destination_ppp))
+trips_by_destination_ppp <- rjitter(trips_by_destination_ppp, retry = TRUE, nsim = 1, drop = TRUE)
+any(duplicated(trips_by_destination_ppp))
+```
+
+Next, we would bind the Bind ppp data structure to the owin map object (Overlay the ppp dataframe on the map of Singapore ensuring all pts are in range)
+
+```{r}
+trips_by_destination_ppp = trips_by_destination_ppp[sgmap_owin]
+plot(trips_by_destination_ppp)
+```
+
+Upon conducting a visual inspection on the map, it is imperative that the CBD is a popular destination for grab passengers indicating that most passengers use Grab to travel to their workplaces / offices in time.
+
+Another popular destination is the north of Singapore around woodlands checkpoint which indicates that a lot of passengers also hitch a ride to woodlands checkpoint to avoid longer queues at immigration.
+
+The same would later be emperically proven using kernel density
+
+Before plotting Kernel Density, we would conver the unit from meters to km and rescale everything such that all distances would be divided by 1000.
+
+Converting the unit of scale to kilometers
+
+```{r}
+trips_by_destination_ppp <- rescale(trips_by_destination_ppp, 1000, "km")
+```
+
+Map depicting Kernel density of destination pts across Singapore.
+
+```{r}
+kde_destination_pts_bw <- density(trips_by_destination_ppp, sigma=0.75, edge=TRUE, kernel="gaussian")
+plot(kde_destination_pts_bw)
+```
+
+Based on the kernel density plot, it could be inferred that more passengers alight either in the central area around the CBD / CBD fringe areas comprising primarily of people working in corporate jobs who wish to get to work in time.
+
+In addition, an almost equal sizable amount of passengers alight in the north around woodlands (Mostly around the checkpoint) which could be individuals seeking to avoid longer immigration queues heading to Johor and other parts of Malaysia.

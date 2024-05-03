@@ -234,6 +234,17 @@ hawker_centre_pts_sp <- as(hawker_centre_pts, "SpatialPoints")
 singapore_mpsz_sp <- as(singapore_mpsz1, "SpatialPolygons")
 ```
 
+```{r}
+directory_path <- "D:/Kabeer2003/GAA Project Group 5/GAA-Project-2024-Group-5-/Module2/data"
+
+if (!dir.exists(directory_path)) {
+  dir.create(directory_path, recursive = TRUE)
+}
+
+write_rds(complete_filtered_hawker_stalls_data_sf, file.path(directory_path, "hawker_centre_pts2.rds"))
+write_rds(singapore_mpsz, file.path(directory_path, "singapore_mpsz2.rds"))
+```
+
 #### Creating owin object (Singapore Map)
 
 Converting the Singapore map sp object to an owin object
@@ -460,6 +471,11 @@ L_C.csr <- envelope(roasted_meat_central_ppp, Lest, nsim = 20, rank = 1, glocal=
 
 ```{r}
 plot(L_C.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
+```
+
+```{r}
+hawker_centre_pts2 <- readRDS("D:/Kabeer2003/GAA Project Group 5/GAA-Project-2024-Group-5-/Module2/data/hawker_centre_pts2.rds")
+singapore_mpsz2 <- readRDS("D:/Kabeer2003/GAA Project Group 5/GAA-Project-2024-Group-5-/Module2/data/singapore_mpsz2.rds")
 ```
 
 ## **Potential Inputs for shiny app (To analyse second-order spatial point patterns):** 
